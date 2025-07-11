@@ -236,6 +236,7 @@ export function OrdersTable() {
   const canEditOrDelete = role === 'Admin' || role === 'Data Entry';
   const isAdminView = role === 'Admin';
   const isSupervisorView = role === 'Fleet Supervisor';
+  const isDataEntryView = role === 'Data Entry';
 
   return (
     <TooltipProvider>
@@ -349,7 +350,7 @@ export function OrdersTable() {
               <TableHead>Marca</TableHead>
               <TableHead>Tipo de Pedido</TableHead>
               {!isSupervisorView && <TableHead>Flota</TableHead>}
-              {isAdminView ? (
+              {isAdminView || isDataEntryView ? (
                 <>
                   <TableHead className="text-center">Cantidad</TableHead>
                   <TableHead>Ingresado Por</TableHead>
@@ -376,7 +377,7 @@ export function OrdersTable() {
                 <TableCell>{order.brand}</TableCell>
                 <TableCell>{order.type}</TableCell>
                 {!isSupervisorView && <TableCell>{order.fleet}</TableCell>}
-                {isAdminView ? (
+                {isAdminView || isDataEntryView ? (
                     <>
                         <TableCell className="text-center">{order.quantity}</TableCell>
                         <TableCell>{order.enteredBy}</TableCell>
