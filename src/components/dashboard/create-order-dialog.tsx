@@ -6,7 +6,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { format } from "date-fns"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, Loader } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -36,6 +36,7 @@ import { drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { useRole } from "@/contexts/role-context"
 import { useData } from "@/contexts/data-context"
+import { summarizeObservations } from "@/ai/flows/summarize-observations-flow"
 
 const orderSchema = z.object({
   orderNumber: z.string().min(1, "No. de pedido es requerido"),
@@ -46,6 +47,7 @@ const orderSchema = z.object({
   fleet: z.string().min(1, "Flota es requerida"),
   quantity: z.coerce.number().min(1, "La cantidad debe ser al menos 1"),
   observations: z.string().optional(),
+  summary: z.string().optional(),
 });
 
 type CreateOrderDialogProps = {
@@ -60,6 +62,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   const { toast } = useToast();
   const { user } = useRole();
   const { brands, fleets, orderTypes } = useData();
+  const [isSummarizing, setIsSummarizing] = React.useState(false);
 
   const brandNames = brands.map(b => b.name);
   const fleetNames = fleets.map(f => f.name);
@@ -75,14 +78,39 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
       type: "",
       quantity: 1,
       observations: "",
+      summary: "",
     },
   });
+
+  const handleGenerateSummary = React.useCallback(async (observations: string) => {
+    if (!observations.trim() || observations.length < 20) {
+      form.setValue('summary', '');
+      return;
+    }
+    setIsSummarizing(true);
+    try {
+      const result = await summarizeObservations({ observations });
+      form.setValue('summary', result.summary);
+    } catch (error) {
+      console.error("Failed to generate summary:", error);
+      toast({
+        variant: "destructive",
+        title: "Error de IA",
+        description: "No se pudo generar el resumen.",
+      });
+      form.setValue('summary', 'Error al generar resumen.');
+    } finally {
+      setIsSummarizing(false);
+    }
+  }, [form, toast]);
+
 
   React.useEffect(() => {
     if (order) {
       form.reset({
         ...order,
         observations: order.observations || "",
+        summary: order.summary || "",
       });
     } else {
       form.reset({
@@ -94,6 +122,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
         type: "",
         quantity: 1,
         observations: "",
+        summary: "",
       });
     }
   }, [order, form, isOpen]);
@@ -291,7 +320,39 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                         <FormItem>
                         <FormLabel>Observaciones</FormLabel>
                         <FormControl>
-                            <Textarea placeholder="Añada observaciones aquí..." {...field} />
+                            <Textarea 
+                                placeholder="Añada observaciones aquí..." 
+                                {...field} 
+                                onBlur={(e) => {
+                                    field.onBlur();
+                                    handleGenerateSummary(e.target.value);
+                                }}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="summary"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Resumen (IA)</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                                <Input 
+                                    placeholder="El resumen de la IA aparecerá aquí..." 
+                                    {...field} 
+                                    disabled 
+                                    className="pr-8"
+                                />
+                                {isSummarizing && (
+                                    <div className="absolute inset-y-0 right-2 flex items-center">
+                                        <Loader className="h-4 w-4 animate-spin" />
+                                    </div>
+                                )}
+                            </div>
                         </FormControl>
                         <FormMessage />
                         </FormItem>

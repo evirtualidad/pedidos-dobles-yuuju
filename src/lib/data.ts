@@ -2,11 +2,11 @@ import type { Order, AuditLog } from './types';
 
 // Mock data representing what might come from Firebase
 export const mockOrders: Order[] = [
-  { id: '1', orderNumber: 'ORD1001', date: new Date('2023-10-01'), driver: 'John Doe', type: 'Larga Distancia', brand: 'BK', fleet: 'RAPI RAPI', quantity: 1, observations: 'N/A', enteredBy: 'Admin User' },
-  { id: '2', orderNumber: 'ORD1002', date: new Date('2023-10-02'), driver: 'Jane Smith', type: 'Apoyo Compañero', brand: 'LC', fleet: 'ZF EXPRESS', quantity: 2, observations: 'Fragile items', enteredBy: 'Data Clerk' },
-  { id: '3', orderNumber: 'ORD1003', date: new Date('2023-10-03'), driver: 'Mike Johnson', type: 'Pedido VIP', brand: 'PP', fleet: 'SPEEDY', quantity: 1, observations: '', enteredBy: 'Data Clerk' },
-  { id: '4', orderNumber: 'ORD1004', date: new Date('2023-10-04'), driver: 'Emily Davis', type: 'Arriba de 1000', brand: 'CC', fleet: 'VUELA YA', quantity: 3, observations: 'Customer will call', enteredBy: 'Admin User' },
-  { id: '5', orderNumber: 'ORD1005', date: new Date('2023-10-05'), driver: 'John Doe', type: 'Escuelas', brand: 'DD', fleet: 'FLOTA PROPIA', quantity: 1, observations: 'Wrong address', enteredBy: 'Supervisor Sam' },
+  { id: '1', orderNumber: 'ORD1001', date: new Date('2023-10-01'), driver: 'John Doe', type: 'Larga Distancia', brand: 'BK', fleet: 'RAPI RAPI', quantity: 1, observations: 'N/A', summary: 'N/A', enteredBy: 'Admin User' },
+  { id: '2', orderNumber: 'ORD1002', date: new Date('2023-10-02'), driver: 'Jane Smith', type: 'Apoyo Compañero', brand: 'LC', fleet: 'ZF EXPRESS', quantity: 2, observations: 'Fragile items inside the main box. Handle with extreme care and ensure it is kept upright at all times.', summary: 'Handle fragile items with care.', enteredBy: 'Data Clerk' },
+  { id: '3', orderNumber: 'ORD1003', date: new Date('2023-10-03'), driver: 'Mike Johnson', type: 'Pedido VIP', brand: 'PP', fleet: 'SPEEDY', quantity: 1, observations: '', summary: '', enteredBy: 'Data Clerk' },
+  { id: '4', orderNumber: 'ORD1004', date: new Date('2023-10-04'), driver: 'Emily Davis', type: 'Arriba de 1000', brand: 'CC', fleet: 'VUELA YA', quantity: 3, observations: 'Customer will call upon arrival to provide final delivery instructions. Do not leave the package unattended.', summary: 'Await customer call for instructions.', enteredBy: 'Admin User' },
+  { id: '5', orderNumber: 'ORD1005', date: new Date('2023-10-05'), driver: 'John Doe', type: 'Escuelas', brand: 'DD', fleet: 'FLOTA PROPIA', quantity: 1, observations: 'The original delivery address was incorrect. The new address has been updated in the system, please verify before departing.', summary: 'Verify updated address.', enteredBy: 'Supervisor Sam' },
 ];
 
 export const mockAuditLogs: AuditLog[] = [

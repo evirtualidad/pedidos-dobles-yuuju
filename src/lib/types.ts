@@ -9,6 +9,7 @@ export type Order = {
   fleet: string;
   quantity: number;
   observations: string;
+  summary?: string; // AI-generated summary
   enteredBy: string; 
 };
 

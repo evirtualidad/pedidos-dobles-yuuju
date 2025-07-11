@@ -169,6 +169,7 @@ export function OrdersTable() {
       'Cantidad': o.quantity,
       'Ingresado Por': o.enteredBy,
       'Observaciones': o.observations,
+      'Resumen IA': o.summary,
     }));
     
     const csv = Papa.unparse(dataToExport, { delimiter: ';' });
@@ -321,10 +322,10 @@ export function OrdersTable() {
             <TableRow>
               <TableHead>Fecha</TableHead>
               <TableHead>Motorista</TableHead>
-              {!isSupervisorView && <TableHead>Flota</TableHead>}
               <TableHead>No. Orden</TableHead>
               <TableHead>Marca</TableHead>
               <TableHead>Tipo de Pedido</TableHead>
+              {!isSupervisorView && <TableHead>Flota</TableHead>}
               {isAdminView ? (
                 <>
                   <TableHead className="text-center">Cantidad</TableHead>
@@ -333,7 +334,7 @@ export function OrdersTable() {
               ) : (
                 <>
                   <TableHead className="text-center">Cantidad</TableHead>
-                  <TableHead>Observaciones</TableHead>
+                  <TableHead>Resumen IA</TableHead>
                 </>
               )}
               <TableHead>
@@ -348,10 +349,10 @@ export function OrdersTable() {
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
                 <TableCell>{order.driver}</TableCell>
-                {!isSupervisorView && <TableCell>{order.fleet}</TableCell>}
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
                 <TableCell>{order.brand}</TableCell>
                 <TableCell>{order.type}</TableCell>
+                {!isSupervisorView && <TableCell>{order.fleet}</TableCell>}
                 {isAdminView ? (
                     <>
                         <TableCell className="text-center">{order.quantity}</TableCell>
@@ -364,12 +365,12 @@ export function OrdersTable() {
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <p className="max-w-[150px] truncate">
-                                        {order.observations || 'N/A'}
+                                        {order.summary || 'N/A'}
                                     </p>
                                 </TooltipTrigger>
-                                {order.observations && (
+                                {order.summary && (
                                     <TooltipContent>
-                                        <p className="max-w-xs">{order.observations}</p>
+                                        <p className="max-w-xs">{order.summary}</p>
                                     </TooltipContent>
                                 )}
                             </Tooltip>

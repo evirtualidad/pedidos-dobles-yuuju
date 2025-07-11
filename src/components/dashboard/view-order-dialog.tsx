@@ -73,6 +73,17 @@ export function ViewOrderDialog({ isOpen, setIsOpen, order }: ViewOrderDialogPro
                     {order.observations || 'Sin observaciones.'}
                 </p>
             </div>
+            {order.summary && (
+                <>
+                <Separator />
+                <div>
+                    <p className="text-sm font-medium text-muted-foreground">Resumen (IA)</p>
+                    <p className="mt-1 text-sm">
+                        {order.summary}
+                    </p>
+                </div>
+                </>
+            )}
              <Separator />
              <div>
                 <p className="text-sm font-medium text-muted-foreground">Ingresado por</p>
