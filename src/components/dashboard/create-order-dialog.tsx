@@ -70,9 +70,10 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
     defaultValues: {
       orderNumber: "",
       driver: "",
+      date: new Date(),
       brand: "",
       fleet: "",
-      type: "",
+      type: "Larga Distancia",
       quantity: 1,
       observations: "",
     },
@@ -88,10 +89,10 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
       form.reset({
         orderNumber: "",
         driver: "",
-        date: undefined,
+        date: new Date(),
         brand: "",
         fleet: "",
-        type: "",
+        type: "Larga Distancia",
         quantity: 1,
         observations: "",
       });
@@ -153,6 +154,19 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                 <div className="grid grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
+                        name="orderNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>No. Pedido</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g., ORD1234" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
                         name="date"
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
@@ -185,19 +199,6 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                                 />
                                 </PopoverContent>
                             </Popover>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="orderNumber"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>No. Pedido</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., ORD1234" {...field} />
-                            </FormControl>
                             <FormMessage />
                             </FormItem>
                         )}
