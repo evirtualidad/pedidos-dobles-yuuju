@@ -1,7 +1,7 @@
 
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck } from "lucide-react";
+import { Truck, Users, Award, PackageSearch } from "lucide-react";
 import { useRole } from "@/contexts/role-context";
 import { Order } from "@/lib/types";
 
@@ -18,16 +18,64 @@ export function StatsCards({ orders }: StatsCardsProps) {
 
     const totalOrders = orders.length;
 
+    const uniqueDrivers = new Set(orders.map(order => order.driver));
+    const totalDrivers = uniqueDrivers.size;
+
+    const driverCounts = orders.reduce<Record<string, number>>((acc, order) => {
+        acc[order.driver] = (acc[order.driver] || 0) + 1;
+        return acc;
+    }, {});
+
+    let topDriver = { name: 'N/A', count: 0 };
+    if (Object.keys(driverCounts).length > 0) {
+        const topDriverName = Object.keys(driverCounts).reduce((a, b) => driverCounts[a] > driverCounts[b] ? a : b);
+        topDriver = { name: topDriverName, count: driverCounts[topDriverName] };
+    }
+    
+    const totalQuantity = orders.reduce((sum, order) => sum + order.quantity, 0);
+    const averageItemsPerOrder = totalOrders > 0 ? (totalQuantity / totalOrders).toFixed(2) : '0.00';
+
+
     return (
         <>
-            <Card className="col-span-1 lg:col-span-4">
+            <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                    <CardTitle className="text-sm font-medium">Total Órdenes</CardTitle>
                     <Truck className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{totalOrders}</div>
                     <p className="text-xs text-muted-foreground">Total de órdenes filtradas</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Motoristas Activos</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{totalDrivers}</div>
+                    <p className="text-xs text-muted-foreground">Motoristas únicos en el período</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Top Motorista</CardTitle>
+                    <Award className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold truncate">{topDriver.name}</div>
+                    <p className="text-xs text-muted-foreground">{topDriver.count} órdenes completadas</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Promedio por Pedido</CardTitle>
+                    <PackageSearch className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{averageItemsPerOrder}</div>
+                    <p className="text-xs text-muted-foreground">Promedio de artículos por orden</p>
                 </CardContent>
             </Card>
         </>
