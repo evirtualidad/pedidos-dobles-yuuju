@@ -9,7 +9,8 @@ import {
   File,
   PlusCircle,
   MoreHorizontal,
-  Download
+  Download,
+  Calendar as CalendarIcon
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -45,6 +46,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { ClientDate } from "../client-date"
 import { useToast } from "@/hooks/use-toast"
+import { DateRange } from "react-day-picker"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { cn } from "@/lib/utils"
+import { Calendar } from "../ui/calendar"
 
 export function OrdersTable() {
   const { role, user } = useRole()
@@ -60,6 +65,7 @@ export function OrdersTable() {
     brand: '',
     fleet: '',
   });
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
 
   const handleFilterChange = (filterName: keyof typeof filters, value: string) => {
     // If the "all" option is selected, reset the specific filter
@@ -78,14 +84,20 @@ export function OrdersTable() {
     }
 
     return roleFilteredOrders.filter(order => {
+      const orderDate = order.date;
+      const dateMatch =
+        (!dateRange?.from || orderDate >= dateRange.from) &&
+        (!dateRange?.to || orderDate <= dateRange.to);
+
       return (
+        dateMatch &&
         (filters.orderNumber === '' || order.orderNumber.toLowerCase().includes(filters.orderNumber.toLowerCase())) &&
         (filters.driver === '' || order.driver === filters.driver) &&
         (filters.brand === '' || order.brand === filters.brand) &&
         (filters.fleet === '' || order.fleet === filters.fleet)
       );
     }).sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [orders, filters, role, user.fleet]);
+  }, [orders, filters, role, user.fleet, dateRange]);
 
   const handleAddOrder = (newOrder: Omit<Order, 'id'>) => {
     const orderWithId = { ...newOrder, id: (orders.length + 1).toString() };
@@ -111,6 +123,15 @@ export function OrdersTable() {
   };
   
   const handleExport = () => {
+    if (filteredOrders.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No hay datos para exportar",
+        description: "Ajusta los filtros o añade nuevas órdenes.",
+      });
+      return;
+    }
+
     const dataToExport = filteredOrders.map(o => ({
       'Fecha': format(o.date, 'yyyy-MM-dd'),
       'Motorista': o.driver,
@@ -171,6 +192,7 @@ export function OrdersTable() {
   };
 
   const canAddOrder = role === 'Admin' || role === 'Data Entry';
+  const canExport = filteredOrders.length > 0;
 
   return (
     <>
@@ -184,7 +206,7 @@ export function OrdersTable() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
+                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport} disabled={!canExport}>
                     <Download className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                         Exportar
@@ -207,6 +229,42 @@ export function OrdersTable() {
                 value={filters.orderNumber}
                 onChange={e => handleFilterChange('orderNumber', e.target.value)}
             />
+             <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant={"outline"}
+                  className={cn(
+                    "w-[260px] justify-start text-left font-normal h-9",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "LLL dd, y")
+                    )
+                  ) : (
+                    <span>Seleccionar rango</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
             <Select value={filters.driver} onValueChange={value => handleFilterChange('driver', value)}>
                 <SelectTrigger className="w-[180px] h-9">
                     <SelectValue placeholder="Filtrar por motorista" />
