@@ -19,20 +19,6 @@ interface OrdersByFleetChartProps {
   orders: Order[]
 }
 
-const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-      {`${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-};
-
-
 export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
     const { role } = useRole();
     const { fleets } = useData();
@@ -86,10 +72,7 @@ export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
             dataKey="total"
             nameKey="name"
             innerRadius={60}
-            outerRadius={80}
             strokeWidth={5}
-            labelLine={false}
-            label={renderCustomizedLabel}
         >
             {chartData.map((entry) => (
               <Cell key={`cell-${entry.key}`} fill={chartConfig[entry.key]?.color} />
