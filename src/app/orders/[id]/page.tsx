@@ -41,7 +41,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
             <div className="max-w-4xl mx-auto w-full">
                 <div className="mb-4">
                     <Button asChild variant="outline" size="sm" className="gap-1">
-                        <Link href="/">
+                        <Link href="/orders">
                             <ArrowLeft className="h-4 w-4" />
                             Volver a Órdenes
                         </Link>
