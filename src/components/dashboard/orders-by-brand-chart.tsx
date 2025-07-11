@@ -72,8 +72,6 @@ export function OrdersByBrandChart({ orders }: OrdersByBrandChartProps) {
             data={chartData}
             dataKey="total"
             nameKey="name"
-            innerRadius={60}
-            strokeWidth={5}
         />
         <ChartLegend
             content={<ChartLegendContent nameKey="name" />}

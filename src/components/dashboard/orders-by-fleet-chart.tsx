@@ -71,8 +71,6 @@ export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
             data={chartData}
             dataKey="total"
             nameKey="name"
-            innerRadius={60}
-            strokeWidth={5}
         >
             {chartData.map((entry) => (
               <Cell key={`cell-${entry.key}`} fill={chartConfig[entry.key]?.color} />
