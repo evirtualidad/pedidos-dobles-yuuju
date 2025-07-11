@@ -47,16 +47,16 @@ const orderSchema = z.object({
 });
 
 type CreateOrderDialogProps = {
-    children: React.ReactNode;
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
-    onAddOrder: (order: Omit<Order, 'id'>) => void;
+    onSave: (order: Omit<Order, 'id' | 'status' | 'enteredBy'>) => void;
     existingOrders: Order[];
+    order: Order | null;
 }
 
-export function CreateOrderDialog({ children, isOpen, setIsOpen, onAddOrder, existingOrders }: CreateOrderDialogProps) {
+export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, order }: CreateOrderDialogProps) {
   const { toast } = useToast();
-  const { role, user } = useRole();
+  const { user } = useRole();
 
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
@@ -71,46 +71,74 @@ export function CreateOrderDialog({ children, isOpen, setIsOpen, onAddOrder, exi
     },
   });
 
-  function onSubmit(values: z.infer<typeof orderSchema>) {
-    const isDuplicate = existingOrders.some(
-      order =>
-        order.orderNumber === values.orderNumber &&
-        order.driver === values.driver &&
-        format(order.date, 'yyyy-MM-dd') === format(values.date, 'yyyy-MM-dd')
-    );
-
-    if (isDuplicate) {
-      toast({
-        variant: "destructive",
-        title: "Pedido Duplicado",
-        description: "Ya existe un pedido con este número, motorista y fecha.",
+  React.useEffect(() => {
+    if (order) {
+      form.reset({
+        ...order,
+        observations: order.observations || "",
       });
-      return;
+    } else {
+      form.reset({
+        orderNumber: "",
+        driver: "",
+        date: undefined,
+        brand: "",
+        fleet: "",
+        type: "",
+        quantity: 1,
+        observations: "",
+      });
     }
+  }, [order, form, isOpen]);
 
-    onAddOrder({ 
-        ...values, 
-        status: 'Pending',
-        enteredBy: user.name, // Add user who created it
-    });
+  function onSubmit(values: z.infer<typeof orderSchema>) {
+    // Duplicate check only applies when creating a new order
+    if (!order) {
+      const isDuplicate = existingOrders.some(
+        o =>
+          o.orderNumber === values.orderNumber &&
+          o.driver === values.driver &&
+          format(o.date, 'yyyy-MM-dd') === format(values.date, 'yyyy-MM-dd')
+      );
+
+      if (isDuplicate) {
+        toast({
+          variant: "destructive",
+          title: "Pedido Duplicado",
+          description: "Ya existe un pedido con este número, motorista y fecha.",
+        });
+        return;
+      }
+    }
+    
+    const saveData = order 
+        ? values 
+        : { ...values, status: 'Pending', enteredBy: user.name };
+
+    onSave(saveData);
 
     toast({
-      title: "Pedido Creado",
-      description: `El pedido ${values.orderNumber} ha sido creado exitosamente.`,
+      title: order ? "Pedido Actualizado" : "Pedido Creado",
+      description: `El pedido ${values.orderNumber} ha sido guardado exitosamente.`,
     });
     
-    form.reset();
     setIsOpen(false);
+  }
+  
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+        form.reset();
+    }
+    setIsOpen(open);
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <div onClick={() => setIsOpen(true)}>{children}</div>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Agregar Nuevo Pedido Doble</DialogTitle>
+          <DialogTitle className="font-headline">{order ? 'Editar Pedido' : 'Agregar Nuevo Pedido'}</DialogTitle>
           <DialogDescription>
-            Ingrese los detalles del nuevo pedido.
+            {order ? 'Modifique los detalles del pedido.' : 'Ingrese los detalles del nuevo pedido.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -174,7 +202,7 @@ export function CreateOrderDialog({ children, isOpen, setIsOpen, onAddOrder, exi
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Nombre Motorista</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                     <SelectTrigger><SelectValue placeholder="Seleccione un motorista" /></SelectTrigger>
                                 </FormControl>
@@ -191,7 +219,7 @@ export function CreateOrderDialog({ children, isOpen, setIsOpen, onAddOrder, exi
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Marca</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
                                     </FormControl>
@@ -206,8 +234,8 @@ export function CreateOrderDialog({ children, isOpen, setIsOpen, onAddOrder, exi
                         name="type"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Tipo de Pedido Doble</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormLabel>Tipo de Pedido</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger><SelectValue placeholder="Seleccione un tipo" /></SelectTrigger>
                                     </FormControl>
@@ -225,7 +253,7 @@ export function CreateOrderDialog({ children, isOpen, setIsOpen, onAddOrder, exi
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Flota</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger><SelectValue placeholder="Seleccione una flota" /></SelectTrigger>
                                     </FormControl>
@@ -240,7 +268,7 @@ export function CreateOrderDialog({ children, isOpen, setIsOpen, onAddOrder, exi
                         name="quantity"
                         render={({ field }) => (
                             <FormItem>
-                            <FormLabel>Cantidad de Dobles</FormLabel>
+                            <FormLabel>Cantidad</FormLabel>
                             <FormControl>
                                 <Input type="number" placeholder="e.g., 2" {...field} />
                             </FormControl>

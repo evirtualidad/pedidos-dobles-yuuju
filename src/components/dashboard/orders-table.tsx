@@ -24,6 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import {
   Table,
@@ -36,15 +37,20 @@ import {
 import { mockOrders, drivers, brands, fleets } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
+import { CancelOrderDialog } from "./cancel-order-dialog";
 import { useRole } from "@/contexts/role-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { ClientDate } from "../client-date"
+import { useToast } from "@/hooks/use-toast"
 
 export function OrdersTable() {
   const { role, user } = useRole()
+  const { toast } = useToast();
   const [orders, setOrders] = React.useState<Order[]>(mockOrders);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = React.useState(false);
+  const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   
   const [filters, setFilters] = React.useState({
     orderNumber: '',
@@ -76,18 +82,64 @@ export function OrdersTable() {
         (filters.brand === '' || order.brand === filters.brand) &&
         (filters.fleet === '' || order.fleet === filters.fleet)
       );
-    });
+    }).sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [orders, filters, role, user.fleet]);
 
-
-  const addOrder = (newOrder: Omit<Order, 'id'>) => {
+  const handleAddOrder = (newOrder: Omit<Order, 'id'>) => {
     const orderWithId = { ...newOrder, id: (orders.length + 1).toString() };
     setOrders(prevOrders => [orderWithId, ...prevOrders]);
   };
   
+  const handleUpdateOrder = (updatedOrder: Omit<Order, 'id'>) => {
+      if(!selectedOrder) return;
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...selectedOrder, ...updatedOrder } : o));
+      setSelectedOrder(null);
+  };
+  
+  const handleCancelOrder = () => {
+    if (selectedOrder) {
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, status: 'Cancelled' } : o));
+      toast({
+        title: "Orden Cancelada",
+        description: `La orden ${selectedOrder.orderNumber} ha sido cancelada.`,
+      });
+      setIsCancelDialogOpen(false);
+      setSelectedOrder(null);
+    }
+  };
+
+  const openEditDialog = (order: Order) => {
+    setSelectedOrder(order);
+    setIsCreateDialogOpen(true);
+  };
+
+  const openCancelDialog = (order: Order) => {
+    setSelectedOrder(order);
+    setIsCancelDialogOpen(true);
+  };
+
+  const closeCreateDialog = () => {
+    setSelectedOrder(null);
+    setIsCreateDialogOpen(false);
+  }
+
+  const getStatusVariant = (status: Order['status']) => {
+    switch (status) {
+      case 'Completed':
+        return 'default';
+      case 'Pending':
+        return 'secondary';
+      case 'Cancelled':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
   const canAddOrder = role === 'Admin' || role === 'Data Entry';
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -105,19 +157,12 @@ export function OrdersTable() {
                     </span>
                 </Button>
                 {canAddOrder && (
-                    <CreateOrderDialog 
-                        isOpen={isDialogOpen} 
-                        setIsOpen={setIsDialogOpen}
-                        onAddOrder={addOrder} 
-                        existingOrders={orders}
-                    >
-                        <Button size="sm" className="h-8 gap-1 bg-primary hover:bg-primary/90">
-                            <PlusCircle className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                            Agregar Orden
-                            </span>
-                        </Button>
-                    </CreateOrderDialog>
+                  <Button size="sm" className="h-8 gap-1 bg-primary hover:bg-primary/90" onClick={() => setIsCreateDialogOpen(true)}>
+                      <PlusCircle className="h-3.5 w-3.5" />
+                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                      Agregar Orden
+                      </span>
+                  </Button>
                 )}
             </div>
         </div>
@@ -162,9 +207,9 @@ export function OrdersTable() {
           <TableHeader>
             <TableRow>
               <TableHead>No. Orden</TableHead>
+              <TableHead>Estado</TableHead>
               <TableHead>Motorista</TableHead>
               <TableHead>Marca</TableHead>
-              <TableHead>Tipo</TableHead>
               <TableHead>Flota</TableHead>
               <TableHead>Fecha</TableHead>
               <TableHead>Creado por</TableHead>
@@ -175,11 +220,11 @@ export function OrdersTable() {
           </TableHeader>
           <TableBody>
             {filteredOrders.map((order) => (
-              <TableRow key={order.id}>
+              <TableRow key={order.id} className={order.status === 'Cancelled' ? 'text-muted-foreground' : ''}>
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                <TableCell><Badge variant={getStatusVariant(order.status)}>{order.status}</Badge></TableCell>
                 <TableCell>{order.driver}</TableCell>
                 <TableCell>{order.brand}</TableCell>
-                <TableCell>{order.type}</TableCell>
                 <TableCell>{order.fleet}</TableCell>
                 <TableCell>
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
@@ -188,7 +233,7 @@ export function OrdersTable() {
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
+                      <Button aria-haspopup="true" size="icon" variant="ghost" disabled={order.status === 'Cancelled'}>
                         <MoreHorizontal className="h-4 w-4" />
                         <span className="sr-only">Toggle menu</span>
                       </Button>
@@ -198,11 +243,16 @@ export function OrdersTable() {
                       <DropdownMenuItem asChild>
                         <Link href={`/orders/${order.id}`}>Ver Detalles</Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>Editar</DropdownMenuItem>
+                       <DropdownMenuItem onClick={() => openEditDialog(order)}>
+                        Editar
+                      </DropdownMenuItem>
                       {role === 'Admin' && (
-                        <DropdownMenuItem className="text-destructive">
-                          Cancelar Orden
-                        </DropdownMenuItem>
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => openCancelDialog(order)}>
+                            Cancelar Orden
+                          </DropdownMenuItem>
+                        </>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -213,5 +263,21 @@ export function OrdersTable() {
         </Table>
       </CardContent>
     </Card>
+
+    <CreateOrderDialog
+        isOpen={isCreateDialogOpen}
+        setIsOpen={closeCreateDialog}
+        onSave={selectedOrder ? handleUpdateOrder : handleAddOrder}
+        existingOrders={orders}
+        order={selectedOrder}
+    />
+    
+    <CancelOrderDialog
+        isOpen={isCancelDialogOpen}
+        setIsOpen={setIsCancelDialogOpen}
+        onConfirm={handleCancelOrder}
+        orderNumber={selectedOrder?.orderNumber}
+    />
+    </>
   )
 }
