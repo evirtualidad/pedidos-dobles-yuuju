@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { brands, fleets, orderTypes } from "@/lib/data";
+import { useData } from "@/contexts/data-context";
 import type { DashboardFiltersState } from "@/app/page";
 
 interface DashboardFiltersProps {
@@ -19,6 +19,12 @@ interface DashboardFiltersProps {
 }
 
 export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersProps) {
+  const { brands, fleets, orderTypes } = useData();
+  
+  const brandNames = brands.map(b => b.name);
+  const fleetNames = fleets.map(f => f.name);
+  const orderTypeNames = orderTypes.map(ot => ot.name);
+
   const handleDateChange = (dateRange?: DateRange) => {
     onFiltersChange({ ...filters, dateRange: dateRange || { from: undefined, to: undefined } });
   };
@@ -74,7 +80,7 @@ export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersP
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todas las Marcas</SelectItem>
-          {brands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+          {brandNames.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
         </SelectContent>
       </Select>
 
@@ -84,7 +90,7 @@ export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersP
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todas las Flotas</SelectItem>
-          {fleets.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+          {fleetNames.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
         </SelectContent>
       </Select>
 
@@ -94,7 +100,7 @@ export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersP
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todos los Tipos</SelectItem>
-          {orderTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+          {orderTypeNames.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
         </SelectContent>
       </Select>
     </div>

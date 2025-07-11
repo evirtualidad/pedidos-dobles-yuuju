@@ -12,32 +12,26 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CreateOrderTypeDialog } from "@/components/admin/create-order-type-dialog";
 import { DeleteOrderTypeDialog } from "@/components/admin/delete-order-type-dialog";
 import type { OrderType } from "@/lib/types";
-import { orderTypes as mockOrderTypes } from "@/lib/data";
-
-const initialOrderTypes: OrderType[] = mockOrderTypes.map((name, index) => ({ id: (index + 1).toString(), name }));
+import { useData } from "@/contexts/data-context";
 
 export default function AdminOrderTypesPage() {
-    const [orderTypes, setOrderTypes] = React.useState<OrderType[]>(initialOrderTypes);
+    const { orderTypes, addOrderType, updateOrderType, deleteOrderType } = useData();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedOrderType, setSelectedOrderType] = React.useState<OrderType | null>(null);
 
     const handleAddOrderType = (name: string) => {
-        const newOrderType: OrderType = {
-            id: (orderTypes.length + 1).toString(),
-            name,
-        };
-        setOrderTypes(prev => [...prev, newOrderType]);
+        addOrderType(name);
     };
 
     const handleUpdateOrderType = (id: string, name: string) => {
-        setOrderTypes(prev => prev.map(ot => ot.id === id ? { ...ot, name } : ot));
+        updateOrderType(id, name);
         setSelectedOrderType(null);
     };
 
     const handleDeleteOrderType = () => {
         if (selectedOrderType) {
-            setOrderTypes(prev => prev.filter(ot => ot.id !== selectedOrderType.id));
+            deleteOrderType(selectedOrderType.id);
             setIsDeleteDialogOpen(false);
             setSelectedOrderType(null);
         }

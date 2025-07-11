@@ -12,36 +12,26 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CreateUserDialog } from "@/components/admin/create-user-dialog";
 import { DeleteUserDialog } from "@/components/admin/delete-user-dialog";
 import type { UserWithId } from "@/lib/types";
-import { fleets as mockFleets } from "@/lib/data";
-
-const initialUsers: UserWithId[] = [
-    { id: '1', name: 'Admin User', role: 'Admin' },
-    { id: '2', name: 'Supervisor Sam', role: 'Fleet Supervisor', fleet: 'Fleet 1' },
-    { id: '3', name: 'Data Clerk', role: 'Data Entry' }
-];
+import { useData } from "@/contexts/data-context";
 
 export default function AdminUsersPage() {
-    const [users, setUsers] = React.useState<UserWithId[]>(initialUsers);
+    const { users, addUser, updateUser, deleteUser, fleets } = useData();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState<UserWithId | null>(null);
 
     const handleAddUser = (user: Omit<UserWithId, 'id'>) => {
-        const newUser: UserWithId = {
-            id: (users.length + 1).toString(),
-            ...user,
-        };
-        setUsers(prev => [...prev, newUser]);
+        addUser(user);
     };
 
     const handleUpdateUser = (id: string, user: Omit<UserWithId, 'id'>) => {
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, ...user } : u));
+        updateUser(id, user);
         setSelectedUser(null);
     };
 
     const handleDeleteUser = () => {
         if (selectedUser) {
-            setUsers(prev => prev.filter(u => u.id !== selectedUser.id));
+            deleteUser(selectedUser.id);
             setIsDeleteDialogOpen(false);
             setSelectedUser(null);
         }
@@ -61,6 +51,8 @@ export default function AdminUsersPage() {
         setSelectedUser(null);
         setIsCreateDialogOpen(false);
     }
+    
+    const fleetNames = fleets.map(f => f.name);
 
     return (
         <RoleProvider>
@@ -129,7 +121,7 @@ export default function AdminUsersPage() {
                 setIsOpen={closeCreateDialog}
                 onSave={selectedUser ? (data) => handleUpdateUser(selectedUser.id, data) : handleAddUser}
                 user={selectedUser}
-                fleets={mockFleets}
+                fleets={fleetNames}
             />
 
             <DeleteUserDialog

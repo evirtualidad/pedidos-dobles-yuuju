@@ -37,7 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { mockOrders, drivers, brands, fleets } from "@/lib/data"
+import { mockOrders, drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
 import { CancelOrderDialog } from "./cancel-order-dialog";
@@ -50,10 +50,12 @@ import { DateRange } from "react-day-picker"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { cn } from "@/lib/utils"
 import { Calendar } from "../ui/calendar"
+import { useData } from "@/contexts/data-context"
 
 export function OrdersTable() {
   const { role, user } = useRole()
   const { toast } = useToast();
+  const { brands, fleets } = useData();
   const [orders, setOrders] = React.useState<Order[]>(mockOrders);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = React.useState(false);
@@ -66,6 +68,9 @@ export function OrdersTable() {
     fleet: '',
   });
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+
+  const brandNames = brands.map(b => b.name);
+  const fleetNames = fleets.map(f => f.name);
 
   const handleFilterChange = (filterName: keyof typeof filters, value: string) => {
     // If the "all" option is selected, reset the specific filter
@@ -279,7 +284,7 @@ export function OrdersTable() {
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all-brands">Todas</SelectItem>
-                    {brands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                    {brandNames.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                 </SelectContent>
             </Select>
             <Select value={filters.fleet} onValueChange={value => handleFilterChange('fleet', value)}>
@@ -288,7 +293,7 @@ export function OrdersTable() {
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all-fleets">Todas</SelectItem>
-                    {fleets.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                    {fleetNames.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                 </SelectContent>
             </Select>
         </div>
@@ -370,5 +375,3 @@ export function OrdersTable() {
     </>
   )
 }
-
-    

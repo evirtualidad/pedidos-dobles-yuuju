@@ -12,32 +12,26 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CreateBrandDialog } from "@/components/admin/create-brand-dialog";
 import { DeleteBrandDialog } from "@/components/admin/delete-brand-dialog";
 import type { Brand } from "@/lib/types";
-import { brands as mockBrands } from "@/lib/data";
-
-const initialBrands: Brand[] = mockBrands.map((name, index) => ({ id: (index + 1).toString(), name }));
+import { useData } from "@/contexts/data-context";
 
 export default function AdminBrandsPage() {
-    const [brands, setBrands] = React.useState<Brand[]>(initialBrands);
+    const { brands, addBrand, updateBrand, deleteBrand } = useData();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedBrand, setSelectedBrand] = React.useState<Brand | null>(null);
 
     const handleAddBrand = (name: string) => {
-        const newBrand: Brand = {
-            id: (brands.length + 1).toString(),
-            name,
-        };
-        setBrands(prev => [...prev, newBrand]);
+        addBrand(name);
     };
 
     const handleUpdateBrand = (id: string, name: string) => {
-        setBrands(prev => prev.map(b => b.id === id ? { ...b, name } : b));
+        updateBrand(id, name);
         setSelectedBrand(null);
     };
 
     const handleDeleteBrand = () => {
         if (selectedBrand) {
-            setBrands(prev => prev.filter(b => b.id !== selectedBrand.id));
+            deleteBrand(selectedBrand.id);
             setIsDeleteDialogOpen(false);
             setSelectedBrand(null);
         }

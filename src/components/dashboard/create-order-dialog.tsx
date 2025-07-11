@@ -31,9 +31,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
-import { drivers, brands, fleets, orderTypes } from "@/lib/data"
+import { drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { useRole } from "@/contexts/role-context"
+import { useData } from "@/contexts/data-context"
 
 const orderSchema = z.object({
   orderNumber: z.string().min(1, "No. de pedido es requerido"),
@@ -57,6 +58,11 @@ type CreateOrderDialogProps = {
 export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, order }: CreateOrderDialogProps) {
   const { toast } = useToast();
   const { user } = useRole();
+  const { brands, fleets, orderTypes } = useData();
+
+  const brandNames = brands.map(b => b.name);
+  const fleetNames = fleets.map(f => f.name);
+  const orderTypeNames = orderTypes.map(ot => ot.name);
 
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
@@ -223,7 +229,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                                     <FormControl>
                                         <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>{brands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent>
+                                    <SelectContent>{brandNames.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent>
                                 </Select>
                                 <FormMessage />
                             </FormItem>
@@ -239,7 +245,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                                     <FormControl>
                                         <SelectTrigger><SelectValue placeholder="Seleccione un tipo" /></SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>{orderTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                                    <SelectContent>{orderTypeNames.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                                 </Select>
                                 <FormMessage />
                             </FormItem>
@@ -257,7 +263,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                                     <FormControl>
                                         <SelectTrigger><SelectValue placeholder="Seleccione una flota" /></SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>{fleets.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+                                    <SelectContent>{fleetNames.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
                                 </Select>
                                 <FormMessage />
                             </FormItem>

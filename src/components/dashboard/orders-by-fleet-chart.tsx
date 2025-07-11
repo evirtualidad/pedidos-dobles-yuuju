@@ -14,41 +14,45 @@ import {
 } from "@/components/ui/chart"
 import type { Order } from "@/lib/types"
 import { useRole } from "@/contexts/role-context"
-import { fleets } from "@/lib/data"
+import { useData } from "@/contexts/data-context"
 
 interface OrdersByFleetChartProps {
   orders: Order[]
 }
 
-const chartConfig = {
-  orders: {
-    label: "Órdenes",
-  },
-  ...fleets.reduce((acc, fleet, index) => {
-    const key = fleet.replace(/\s+/g, ''); // Remove spaces for valid key
-    acc[key] = {
-      label: fleet,
-      color: `hsl(var(--chart-${index + 1}))`,
-    };
-    return acc;
-  }, {} as Record<string, { label: string; color: string }>),
-} satisfies ChartConfig
-
 export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
     const { role } = useRole();
+    const { fleets } = useData();
+    
+    const chartConfig = React.useMemo(() => {
+        const config: ChartConfig = {
+             orders: {
+                label: "Órdenes",
+            },
+        };
+        fleets.forEach((fleet, index) => {
+            const key = fleet.name.replace(/\s+/g, '');
+             config[key] = {
+                label: fleet.name,
+                color: `hsl(var(--chart-${(index % 5) + 1}))`,
+            };
+        });
+        return config;
+    }, [fleets]);
+
 
     const chartData = React.useMemo(() => {
         const fleetCounts = fleets.map(fleet => {
-            const key = fleet.replace(/\s+/g, ''); // Remove spaces
+            const key = fleet.name.replace(/\s+/g, ''); // Remove spaces
             return {
-                name: fleet,
+                name: fleet.name,
                 key,
-                total: orders.filter(order => order.fleet === fleet).length,
+                total: orders.filter(order => order.fleet === fleet.name).length,
                 fill: `var(--color-${key})`,
             }
         });
         return fleetCounts.filter(f => f.total > 0);
-    }, [orders]);
+    }, [orders, fleets]);
 
     if (role === 'Data Entry') {
         return null;
