@@ -28,7 +28,6 @@ export function AuditTable() {
     const sortedLogs = [...auditLogs].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
     
     return (
-        <div className="border rounded-lg">
         <Table>
             <TableHeader>
                 <TableRow>
@@ -53,6 +52,5 @@ export function AuditTable() {
                 ))}
             </TableBody>
         </Table>
-        </div>
     );
 }

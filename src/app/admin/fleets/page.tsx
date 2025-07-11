@@ -71,41 +71,39 @@ export default function AdminFleetsPage() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="border rounded-lg">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nombre de la Flota</TableHead>
-                                        <TableHead>
-                                            <span className="sr-only">Acciones</span>
-                                        </TableHead>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Nombre de la Flota</TableHead>
+                                    <TableHead>
+                                        <span className="sr-only">Acciones</span>
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {fleets.map(fleet => (
+                                    <TableRow key={fleet.id}>
+                                        <TableCell className="font-medium">{fleet.name}</TableCell>
+                                        <TableCell>
+                                            <div className="flex justify-end">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Toggle menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => openEditDialog(fleet)}>Editar</DropdownMenuItem>
+                                                        <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(fleet)}>Eliminar</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {fleets.map(fleet => (
-                                        <TableRow key={fleet.id}>
-                                            <TableCell className="font-medium">{fleet.name}</TableCell>
-                                            <TableCell>
-                                                <div className="flex justify-end">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                                <span className="sr-only">Toggle menu</span>
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => openEditDialog(fleet)}>Editar</DropdownMenuItem>
-                                                            <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(fleet)}>Eliminar</DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </CardContent>
                 </Card>
             </AdminLayout>

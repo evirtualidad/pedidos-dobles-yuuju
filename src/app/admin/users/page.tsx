@@ -73,45 +73,43 @@ export default function AdminUsersPage() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="border rounded-lg">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nombre</TableHead>
-                                        <TableHead>Rol</TableHead>
-                                        <TableHead>Flota (si aplica)</TableHead>
-                                        <TableHead>
-                                            <span className="sr-only">Acciones</span>
-                                        </TableHead>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Nombre</TableHead>
+                                    <TableHead>Rol</TableHead>
+                                    <TableHead>Flota (si aplica)</TableHead>
+                                    <TableHead>
+                                        <span className="sr-only">Acciones</span>
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {users.map(user => (
+                                    <TableRow key={user.id}>
+                                        <TableCell className="font-medium">{user.name}</TableCell>
+                                        <TableCell>{user.role}</TableCell>
+                                        <TableCell>{user.fleet || 'N/A'}</TableCell>
+                                        <TableCell>
+                                            <div className="flex justify-end">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Toggle menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => openEditDialog(user)}>Editar</DropdownMenuItem>
+                                                        <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(user)}>Eliminar</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {users.map(user => (
-                                        <TableRow key={user.id}>
-                                            <TableCell className="font-medium">{user.name}</TableCell>
-                                            <TableCell>{user.role}</TableCell>
-                                            <TableCell>{user.fleet || 'N/A'}</TableCell>
-                                            <TableCell>
-                                                <div className="flex justify-end">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                                <span className="sr-only">Toggle menu</span>
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => openEditDialog(user)}>Editar</DropdownMenuItem>
-                                                            <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(user)}>Eliminar</DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </CardContent>
                 </Card>
             </AdminLayout>
