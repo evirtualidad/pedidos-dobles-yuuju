@@ -3,6 +3,8 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { format } from "date-fns"
+import Papa from "papaparse"
 import {
   File,
   PlusCircle,
@@ -107,6 +109,37 @@ export function OrdersTable() {
       setSelectedOrder(null);
     }
   };
+  
+  const handleExport = () => {
+    const dataToExport = filteredOrders.map(o => ({
+      'Fecha': format(o.date, 'yyyy-MM-dd'),
+      'Motorista': o.driver,
+      'Flota': o.fleet,
+      'No. Orden': o.orderNumber,
+      'Tipo de Pedido': o.type,
+      'Marca': o.brand,
+      'Cantidad': o.quantity,
+      'Estado': o.status,
+      'Ingresado Por': o.enteredBy,
+      'Observaciones': o.observations,
+    }));
+    
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'ordenes.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+        title: "Exportación Exitosa",
+        description: `${filteredOrders.length} órdenes han sido exportadas a ordenes.csv`,
+    });
+  }
 
   const openEditDialog = (order: Order) => {
     setSelectedOrder(order);
@@ -150,7 +183,7 @@ export function OrdersTable() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" className="h-8 gap-1">
+                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                     <Download className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                         Exportar
