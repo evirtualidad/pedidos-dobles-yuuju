@@ -194,6 +194,7 @@ export function OrdersTable() {
   const canAddOrder = role === 'Admin' || role === 'Data Entry';
   const canEditOrDelete = role === 'Admin' || role === 'Data Entry';
   const isAdminView = role === 'Admin';
+  const isSupervisorView = role === 'Fleet Supervisor';
 
   return (
     <TooltipProvider>
@@ -303,10 +304,10 @@ export function OrdersTable() {
             <TableRow>
               <TableHead>Fecha</TableHead>
               <TableHead>Motorista</TableHead>
-              <TableHead>Flota</TableHead>
+              {!isSupervisorView && <TableHead>Flota</TableHead>}
               <TableHead>No. Orden</TableHead>
-              <TableHead>Tipo de Pedido</TableHead>
               <TableHead>Marca</TableHead>
+              <TableHead>Tipo de Pedido</TableHead>
               {isAdminView ? (
                 <>
                   <TableHead className="text-center">Cantidad</TableHead>
@@ -330,10 +331,10 @@ export function OrdersTable() {
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
                 <TableCell>{order.driver}</TableCell>
-                <TableCell>{order.fleet}</TableCell>
+                {!isSupervisorView && <TableCell>{order.fleet}</TableCell>}
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                <TableCell>{order.type}</TableCell>
                 <TableCell>{order.brand}</TableCell>
+                <TableCell>{order.type}</TableCell>
                 {isAdminView ? (
                     <>
                         <TableCell className="text-center">{order.quantity}</TableCell>
