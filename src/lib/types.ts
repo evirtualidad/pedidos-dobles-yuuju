@@ -3,13 +3,13 @@ export type Order = {
   orderNumber: string;
   date: Date;
   driver: string;
-  type: 'Pickup' | 'Delivery' | string; // Type can be managed by admin
+  type: string; 
   brand: string;
   fleet: string;
   status: 'Pending' | 'Completed' | 'Cancelled';
   quantity: number;
   observations: string;
-  enteredBy: string; // User who entered the order
+  enteredBy: string; 
 };
 
 export type AuditLog = {
@@ -26,8 +26,10 @@ export type Role = 'Admin' | 'Fleet Supervisor' | 'Data Entry';
 export type User = {
   name: string;
   role: Role;
-  fleet?: string; // Optional fleet for supervisors
+  fleet?: string;
 };
+
+export type UserWithId = User & { id: string; };
 
 export type Fleet = {
   id: string;

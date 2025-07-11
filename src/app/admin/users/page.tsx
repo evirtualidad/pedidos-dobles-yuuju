@@ -9,16 +9,58 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, MoreHorizontal } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import type { User } from "@/lib/types";
+import { CreateUserDialog } from "@/components/admin/create-user-dialog";
+import { DeleteUserDialog } from "@/components/admin/delete-user-dialog";
+import type { UserWithId } from "@/lib/types";
+import { fleets as mockFleets } from "@/lib/data";
 
-const mockUsers: User[] = [
-    { name: 'Admin User', role: 'Admin'},
-    { name: 'Supervisor Sam', role: 'Fleet Supervisor', fleet: 'Fleet 1'},
-    { name: 'Data Clerk', role: 'Data Entry'}
-]
-
+const initialUsers: UserWithId[] = [
+    { id: '1', name: 'Admin User', role: 'Admin' },
+    { id: '2', name: 'Supervisor Sam', role: 'Fleet Supervisor', fleet: 'Fleet 1' },
+    { id: '3', name: 'Data Clerk', role: 'Data Entry' }
+];
 
 export default function AdminUsersPage() {
+    const [users, setUsers] = React.useState<UserWithId[]>(initialUsers);
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+    const [selectedUser, setSelectedUser] = React.useState<UserWithId | null>(null);
+
+    const handleAddUser = (user: Omit<UserWithId, 'id'>) => {
+        const newUser: UserWithId = {
+            id: (users.length + 1).toString(),
+            ...user,
+        };
+        setUsers(prev => [...prev, newUser]);
+    };
+
+    const handleUpdateUser = (id: string, user: Omit<UserWithId, 'id'>) => {
+        setUsers(prev => prev.map(u => u.id === id ? { ...u, ...user } : u));
+        setSelectedUser(null);
+    };
+
+    const handleDeleteUser = () => {
+        if (selectedUser) {
+            setUsers(prev => prev.filter(u => u.id !== selectedUser.id));
+            setIsDeleteDialogOpen(false);
+            setSelectedUser(null);
+        }
+    };
+
+    const openEditDialog = (user: UserWithId) => {
+        setSelectedUser(user);
+        setIsCreateDialogOpen(true);
+    };
+
+    const openDeleteDialog = (user: UserWithId) => {
+        setSelectedUser(user);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const closeCreateDialog = () => {
+        setSelectedUser(null);
+        setIsCreateDialogOpen(false);
+    }
 
     return (
         <RoleProvider>
@@ -32,7 +74,7 @@ export default function AdminUsersPage() {
                                     Gestiona los usuarios y sus roles.
                                 </CardDescription>
                             </div>
-                            <Button size="sm" className="gap-1">
+                            <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
                                 <PlusCircle className="h-3.5 w-3.5" />
                                 Añadir Usuario
                             </Button>
@@ -52,8 +94,8 @@ export default function AdminUsersPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {mockUsers.map(user => (
-                                        <TableRow key={user.name}>
+                                    {users.map(user => (
+                                        <TableRow key={user.id}>
                                             <TableCell className="font-medium">{user.name}</TableCell>
                                             <TableCell>{user.role}</TableCell>
                                             <TableCell>{user.fleet || 'N/A'}</TableCell>
@@ -67,8 +109,8 @@ export default function AdminUsersPage() {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                                                            <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => openEditDialog(user)}>Editar</DropdownMenuItem>
+                                                            <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(user)}>Eliminar</DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </div>
@@ -81,6 +123,21 @@ export default function AdminUsersPage() {
                     </CardContent>
                 </Card>
             </AdminLayout>
+
+             <CreateUserDialog
+                isOpen={isCreateDialogOpen}
+                setIsOpen={closeCreateDialog}
+                onSave={selectedUser ? (data) => handleUpdateUser(selectedUser.id, data) : handleAddUser}
+                user={selectedUser}
+                fleets={mockFleets}
+            />
+
+            <DeleteUserDialog
+                isOpen={isDeleteDialogOpen}
+                setIsOpen={setIsDeleteDialogOpen}
+                onConfirm={handleDeleteUser}
+                userName={selectedUser?.name}
+            />
         </RoleProvider>
     )
 }
