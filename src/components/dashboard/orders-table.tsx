@@ -4,7 +4,6 @@
 import * as React from "react"
 import { format } from "date-fns"
 import Papa from "papaparse"
-import { useRouter } from 'next/navigation'
 import {
   PlusCircle,
   MoreHorizontal,
@@ -15,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
+  Eye
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -52,6 +52,7 @@ import { drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
 import { DeleteOrderDialog } from "./delete-order-dialog"
+import { ViewOrderDialog } from "./view-order-dialog"
 import { useRole } from "@/contexts/role-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
@@ -66,11 +67,11 @@ import { useData } from "@/contexts/data-context"
 export function OrdersTable() {
   const { role, user } = useRole()
   const { toast } = useToast();
-  const router = useRouter();
   const { brands, fleets, orders, addOrder, updateOrder, deleteOrder, addAuditLog } = useData();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   
   const [filters, setFilters] = React.useState({
@@ -209,6 +210,11 @@ export function OrdersTable() {
         title: "Exportación Exitosa",
         description: `${filteredOrders.length} órdenes han sido exportadas a ordenes.csv`,
     });
+  }
+
+  const openViewDialog = (order: Order) => {
+    setSelectedOrder(order);
+    setIsViewDialogOpen(true);
   }
 
   const openEditDialog = (order: Order) => {
@@ -362,11 +368,7 @@ export function OrdersTable() {
           </TableHeader>
           <TableBody>
             {paginatedOrders.map((order) => (
-              <TableRow 
-                key={order.id} 
-                className="cursor-pointer" 
-                onClick={() => router.push(`/orders/${order.id}`)}
-              >
+              <TableRow key={order.id}>
                 <TableCell>
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
@@ -399,7 +401,7 @@ export function OrdersTable() {
                         </TableCell>
                     </>
                 )}
-                <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -409,13 +411,17 @@ export function OrdersTable() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => openViewDialog(order)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver Detalles
+                      </DropdownMenuItem>
                       {canEditOrDelete && (
                         <>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => openEditDialog(order)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(order)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Eliminar
@@ -518,6 +524,12 @@ export function OrdersTable() {
         setIsOpen={setIsDeleteDialogOpen}
         onConfirm={handleDeleteOrder}
         orderNumber={selectedOrder?.orderNumber}
+    />
+
+    <ViewOrderDialog
+        isOpen={isViewDialogOpen}
+        setIsOpen={setIsViewDialogOpen}
+        order={selectedOrder}
     />
     
     </TooltipProvider>
