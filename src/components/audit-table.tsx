@@ -5,6 +5,7 @@ import { mockAuditLogs } from "@/lib/data";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Terminal } from "lucide-react";
+import { format } from "date-fns";
 
 export function AuditTable() {
     const { role } = useRole();
@@ -40,7 +41,7 @@ export function AuditTable() {
                         <TableCell>{log.role}</TableCell>
                         <TableCell>{log.action}</TableCell>
                         <TableCell className="text-muted-foreground">{log.details}</TableCell>
-                        <TableCell>{log.timestamp.toLocaleString()}</TableCell>
+                        <TableCell>{format(log.timestamp, "Pp")}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
