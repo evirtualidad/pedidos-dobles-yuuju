@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -52,7 +53,12 @@ export function OrdersTable() {
   });
 
   const handleFilterChange = (filterName: keyof typeof filters, value: string) => {
-    setFilters(prev => ({ ...prev, [filterName]: value }));
+    // If the "all" option is selected, reset the specific filter
+    if (value.startsWith('all-')) {
+      setFilters(prev => ({ ...prev, [filterName]: '' }));
+    } else {
+      setFilters(prev => ({ ...prev, [filterName]: value }));
+    }
   };
 
   const filteredOrders = React.useMemo(() => {
@@ -120,7 +126,7 @@ export function OrdersTable() {
                     <SelectValue placeholder="Filtrar por motorista" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="all-drivers">Todos</SelectItem>
                     {drivers.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                 </SelectContent>
             </Select>
@@ -129,7 +135,7 @@ export function OrdersTable() {
                     <SelectValue placeholder="Filtrar por marca" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="">Todas</SelectItem>
+                    <SelectItem value="all-brands">Todas</SelectItem>
                     {brands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                 </SelectContent>
             </Select>
@@ -138,7 +144,7 @@ export function OrdersTable() {
                     <SelectValue placeholder="Filtrar por flota" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="">Todas</SelectItem>
+                    <SelectItem value="all-fleets">Todas</SelectItem>
                     {fleets.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                 </SelectContent>
             </Select>
