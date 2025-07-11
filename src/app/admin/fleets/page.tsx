@@ -12,32 +12,26 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CreateFleetDialog } from "@/components/admin/create-fleet-dialog";
 import { DeleteFleetDialog } from "@/components/admin/delete-fleet-dialog";
 import type { Fleet } from "@/lib/types";
-import { fleets as mockFleets } from "@/lib/data";
-
-const initialFleets: Fleet[] = mockFleets.map((name, index) => ({ id: (index + 1).toString(), name }));
+import { useData } from "@/contexts/data-context";
 
 export default function AdminFleetsPage() {
-    const [fleets, setFleets] = React.useState<Fleet[]>(initialFleets);
+    const { fleets, addFleet, updateFleet, deleteFleet } = useData();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedFleet, setSelectedFleet] = React.useState<Fleet | null>(null);
 
     const handleAddFleet = (name: string) => {
-        const newFleet: Fleet = {
-            id: (fleets.length + 1).toString(),
-            name,
-        };
-        setFleets(prev => [...prev, newFleet]);
+        addFleet(name);
     };
 
     const handleUpdateFleet = (id: string, name: string) => {
-        setFleets(prev => prev.map(f => f.id === id ? { ...f, name } : f));
+        updateFleet(id, name);
         setSelectedFleet(null);
     };
 
     const handleDeleteFleet = () => {
         if (selectedFleet) {
-            setFleets(prev => prev.filter(f => f.id !== selectedFleet.id));
+            deleteFleet(selectedFleet.id);
             setIsDeleteDialogOpen(false);
             setSelectedFleet(null);
         }
