@@ -11,7 +11,7 @@ export default function AdminPage() {
                     <CardHeader>
                         <CardTitle>Bienvenido, Admin</CardTitle>
                         <CardDescription>
-                            Usa la navegación a la izquierda para gestionar tu aplicación.
+                            Usa la navegación superior para gestionar tu aplicación.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

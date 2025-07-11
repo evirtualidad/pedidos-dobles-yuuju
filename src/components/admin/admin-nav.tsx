@@ -4,7 +4,6 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Card } from "@/components/ui/card"
 
 export function AdminNav() {
   const pathname = usePathname()
@@ -18,21 +17,21 @@ export function AdminNav() {
   ]
 
   return (
-    <Card className="p-2 h-fit">
-        <nav className="grid gap-1 text-sm text-muted-foreground">
+    <div className="border-b">
+        <nav className="flex items-center gap-2 text-sm text-muted-foreground -mb-px">
         {routes.map((route) => (
             <Link
             key={route.href}
             href={route.href}
             className={cn(
-                "px-3 py-2 rounded-md hover:bg-accent hover:text-accent-foreground",
-                pathname === route.href && "bg-accent text-accent-foreground font-semibold"
+                "px-3 py-2 border-b-2 border-transparent hover:text-primary",
+                pathname === route.href && "text-primary font-semibold border-primary"
             )}
             >
             {route.label}
             </Link>
         ))}
         </nav>
-    </Card>
+    </div>
   )
 }
