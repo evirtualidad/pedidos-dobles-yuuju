@@ -13,6 +13,7 @@ import { OrdersByBrandChart } from "@/components/dashboard/orders-by-brand-chart
 import { OrdersByFleetChart } from "@/components/dashboard/orders-by-fleet-chart";
 import { DateRange } from "react-day-picker";
 import { useData } from "@/contexts/data-context";
+import { OrdersByOrderTypeChart } from "@/components/dashboard/orders-by-order-type-chart";
 
 export interface DashboardFiltersState {
   dateRange: DateRange;
@@ -75,15 +76,27 @@ function DashboardPageContent() {
                   <OrdersByBrandChart orders={filteredOrders} />
               </CardContent>
           </Card>
-           <Card>
+          {role === 'Admin' ? (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Órdenes por Flota</CardTitle>
+                    <CardDescription>Distribución de órdenes por flota.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <OrdersByFleetChart orders={filteredOrders} />
+                </CardContent>
+            </Card>
+          ) : (
+            <Card>
               <CardHeader>
-                  <CardTitle>Órdenes por Flota</CardTitle>
-                  <CardDescription>Distribución de órdenes por flota.</CardDescription>
+                  <CardTitle>Órdenes por Tipo de Pedido</CardTitle>
+                  <CardDescription>Distribución de órdenes por tipo.</CardDescription>
               </CardHeader>
               <CardContent>
-                  <OrdersByFleetChart orders={filteredOrders} />
+                  <OrdersByOrderTypeChart orders={filteredOrders} />
               </CardContent>
-          </Card>
+            </Card>
+          )}
         </div>
 
         <div className="grid gap-4 md:gap-8 lg:grid-cols-1">
