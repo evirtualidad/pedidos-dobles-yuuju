@@ -2,11 +2,10 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart } from "recharts"
+import { Pie, PieChart, Cell, Tooltip } from "recharts"
 
 import {
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
   ChartConfig,
   ChartLegend,
@@ -19,6 +18,20 @@ import { useData } from "@/contexts/data-context"
 interface OrdersByFleetChartProps {
   orders: Order[]
 }
+
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
 
 export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
     const { role } = useRole();
@@ -64,7 +77,7 @@ export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
         className="mx-auto aspect-square h-[250px]"
     >
         <PieChart>
-        <ChartTooltip
+        <Tooltip
             cursor={false}
             content={<ChartTooltipContent hideLabel />}
         />
@@ -73,8 +86,15 @@ export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
             dataKey="total"
             nameKey="name"
             innerRadius={60}
+            outerRadius={80}
             strokeWidth={5}
-        />
+            labelLine={false}
+            label={renderCustomizedLabel}
+        >
+            {chartData.map((entry) => (
+              <Cell key={`cell-${entry.key}`} fill={chartConfig[entry.key]?.color} />
+            ))}
+        </Pie>
         <ChartLegend
             content={<ChartLegendContent nameKey="name" />}
             className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"

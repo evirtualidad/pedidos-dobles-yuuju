@@ -10,10 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
 import { Order } from "@/lib/types";
 import { OrdersByBrandChart } from "@/components/dashboard/orders-by-brand-chart";
-import { OrdersByFleetBarChart } from "@/components/dashboard/orders-by-fleet-bar-chart";
 import { DateRange } from "react-day-picker";
 import { useData } from "@/contexts/data-context";
 import { OrdersByOrderTypeChart } from "@/components/dashboard/orders-by-order-type-chart";
+import { OrdersByFleetChart } from "@/components/dashboard/orders-by-fleet-chart";
 
 export interface DashboardFiltersState {
   dateRange: DateRange;
@@ -83,7 +83,7 @@ function DashboardPageContent() {
                     <CardDescription>Comparación de órdenes entre flotas.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <OrdersByFleetBarChart orders={filteredOrders} />
+                    <OrdersByFleetChart orders={filteredOrders} />
                 </CardContent>
             </Card>
           ) : (
