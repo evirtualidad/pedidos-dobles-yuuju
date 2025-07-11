@@ -12,7 +12,6 @@ import { mockOrders } from "@/lib/data";
 import type { Order } from "@/lib/types";
 import { OrdersByBrandChart } from "@/components/dashboard/orders-by-brand-chart";
 import { OrdersByFleetChart } from "@/components/dashboard/orders-by-fleet-chart";
-import { OrdersByStatusChart } from "@/components/dashboard/orders-by-status-chart";
 import { DateRange } from "react-day-picker";
 
 export interface DashboardFiltersState {
@@ -65,7 +64,7 @@ function DashboardPageContent() {
           <StatsCards orders={filteredOrders} />
         </div>
 
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
            <Card>
               <CardHeader>
                   <CardTitle>Órdenes por Marca</CardTitle>
@@ -82,15 +81,6 @@ function DashboardPageContent() {
               </CardHeader>
               <CardContent>
                   <OrdersByFleetChart orders={filteredOrders} />
-              </CardContent>
-          </Card>
-           <Card>
-              <CardHeader>
-                  <CardTitle>Órdenes por Estado</CardTitle>
-                  <CardDescription>Distribución de órdenes por estado.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <OrdersByStatusChart orders={filteredOrders} />
               </CardContent>
           </Card>
         </div>

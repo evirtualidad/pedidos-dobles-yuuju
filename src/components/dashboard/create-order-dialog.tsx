@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -50,7 +51,7 @@ const orderSchema = z.object({
 type CreateOrderDialogProps = {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
-    onSave: (order: Omit<Order, 'id' | 'status' | 'enteredBy'>) => void;
+    onSave: (order: Omit<Order, 'id' | 'enteredBy'>) => void;
     existingOrders: Order[];
     order: Order | null;
 }
@@ -119,7 +120,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
     
     const saveData = order 
         ? values 
-        : { ...values, status: 'Pending', enteredBy: user.name };
+        : { ...values, enteredBy: user.name };
 
     onSave(saveData);
 

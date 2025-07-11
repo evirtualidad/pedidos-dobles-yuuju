@@ -4,7 +4,6 @@ import { RoleProvider } from '@/contexts/role-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { mockOrders } from '@/lib/data';
 import { notFound } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -18,20 +17,6 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
   if (!order) {
     notFound();
   }
-
-  const getStatusVariant = (status: 'Pending' | 'Completed' | 'Cancelled') => {
-    switch (status) {
-      case 'Completed':
-        return 'default';
-      case 'Pending':
-        return 'secondary';
-      case 'Cancelled':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
-
 
   return (
     <RoleProvider>
@@ -55,7 +40,6 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                 Detalles completos de la orden.
                             </CardDescription>
                         </div>
-                        <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                     </CardHeader>
                     <CardContent>
                         <div className="grid gap-6">

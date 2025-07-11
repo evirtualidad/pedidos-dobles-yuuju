@@ -1,3 +1,4 @@
+
 export type Order = {
   id: string;
   orderNumber: string;
@@ -6,7 +7,6 @@ export type Order = {
   type: string; 
   brand: string;
   fleet: string;
-  status: 'Pending' | 'Completed' | 'Cancelled';
   quantity: number;
   observations: string;
   enteredBy: string; 

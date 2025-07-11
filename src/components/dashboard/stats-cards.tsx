@@ -1,7 +1,7 @@
 
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck, CheckCircle, Hourglass, XCircle } from "lucide-react";
+import { Truck } from "lucide-react";
 import { useRole } from "@/contexts/role-context";
 import { Order } from "@/lib/types";
 
@@ -17,13 +17,10 @@ export function StatsCards({ orders }: StatsCardsProps) {
     }
 
     const totalOrders = orders.length;
-    const pendingOrders = orders.filter(o => o.status === 'Pending').length;
-    const completedOrders = orders.filter(o => o.status === 'Completed').length;
-    const cancelledOrders = orders.filter(o => o.status === 'Cancelled').length;
 
     return (
         <>
-            <Card>
+            <Card className="col-span-1 lg:col-span-4">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
                     <Truck className="h-4 w-4 text-muted-foreground" />
@@ -31,36 +28,6 @@ export function StatsCards({ orders }: StatsCardsProps) {
                 <CardContent>
                     <div className="text-2xl font-bold">{totalOrders}</div>
                     <p className="text-xs text-muted-foreground">Total de órdenes filtradas</p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{completedOrders}</div>
-                     <p className="text-xs text-muted-foreground">Entregas completadas</p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                    <Hourglass className="h-4 w-4 text-yellow-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{pendingOrders}</div>
-                    <p className="text-xs text-muted-foreground">Entregas pendientes</p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
-                    <XCircle className="h-4 w-4 text-red-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{cancelledOrders}</div>
-                    <p className="text-xs text-muted-foreground">Órdenes canceladas</p>
                 </CardContent>
             </Card>
         </>

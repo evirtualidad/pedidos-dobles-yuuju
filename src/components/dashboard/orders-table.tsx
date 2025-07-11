@@ -6,13 +6,11 @@ import Link from "next/link"
 import { format } from "date-fns"
 import Papa from "papaparse"
 import {
-  File,
   PlusCircle,
   MoreHorizontal,
   Download,
   Calendar as CalendarIcon
 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -46,7 +44,6 @@ import {
 import { mockOrders, drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
-import { CancelOrderDialog } from "./cancel-order-dialog";
 import { useRole } from "@/contexts/role-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
@@ -61,10 +58,9 @@ import { useData } from "@/contexts/data-context"
 export function OrdersTable() {
   const { role, user } = useRole()
   const { toast } = useToast();
-  const { brands, fleets, orderTypes } = useData();
+  const { brands, fleets } = useData();
   const [orders, setOrders] = React.useState<Order[]>(mockOrders);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
-  const [isCancelDialogOpen, setIsCancelDialogOpen] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   
   const [filters, setFilters] = React.useState({
@@ -121,18 +117,6 @@ export function OrdersTable() {
       setSelectedOrder(null);
   };
   
-  const handleCancelOrder = () => {
-    if (selectedOrder) {
-      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, status: 'Cancelled' } : o));
-      toast({
-        title: "Orden Cancelada",
-        description: `La orden ${selectedOrder.orderNumber} ha sido cancelada.`,
-      });
-      setIsCancelDialogOpen(false);
-      setSelectedOrder(null);
-    }
-  };
-  
   const handleExport = () => {
     if (filteredOrders.length === 0) {
       toast({
@@ -151,7 +135,6 @@ export function OrdersTable() {
       'Tipo de Pedido': o.type,
       'Marca': o.brand,
       'Cantidad': o.quantity,
-      'Estado': o.status,
       'Ingresado Por': o.enteredBy,
       'Observaciones': o.observations,
     }));
@@ -179,28 +162,10 @@ export function OrdersTable() {
     setIsCreateDialogOpen(true);
   };
 
-  const openCancelDialog = (order: Order) => {
-    setSelectedOrder(order);
-    setIsCancelDialogOpen(true);
-  };
-
   const closeCreateDialog = () => {
     setSelectedOrder(null);
     setIsCreateDialogOpen(false);
   }
-
-  const getStatusVariant = (status: Order['status']) => {
-    switch (status) {
-      case 'Completed':
-        return 'default';
-      case 'Pending':
-        return 'secondary';
-      case 'Cancelled':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
 
   const canAddOrder = role === 'Admin' || role === 'Data Entry';
   const isAdminView = role === 'Admin';
@@ -334,7 +299,7 @@ export function OrdersTable() {
           </TableHeader>
           <TableBody>
             {filteredOrders.map((order) => (
-              <TableRow key={order.id} className={order.status === 'Cancelled' ? 'text-muted-foreground' : ''}>
+              <TableRow key={order.id}>
                 <TableCell>
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
@@ -369,7 +334,7 @@ export function OrdersTable() {
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost" disabled={order.status === 'Cancelled'}>
+                      <Button aria-haspopup="true" size="icon" variant="ghost">
                         <MoreHorizontal className="h-4 w-4" />
                         <span className="sr-only">Toggle menu</span>
                       </Button>
@@ -382,14 +347,6 @@ export function OrdersTable() {
                        <DropdownMenuItem onClick={() => openEditDialog(order)}>
                         Editar
                       </DropdownMenuItem>
-                      {role === 'Admin' && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => openCancelDialog(order)}>
-                            Cancelar Orden
-                          </DropdownMenuItem>
-                        </>
-                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -408,12 +365,6 @@ export function OrdersTable() {
         order={selectedOrder}
     />
     
-    <CancelOrderDialog
-        isOpen={isCancelDialogOpen}
-        setIsOpen={setIsCancelDialogOpen}
-        onConfirm={handleCancelOrder}
-        orderNumber={selectedOrder?.orderNumber}
-    />
     </TooltipProvider>
   )
 }
