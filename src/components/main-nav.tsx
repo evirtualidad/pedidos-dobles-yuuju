@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -10,7 +11,7 @@ export function MainNav() {
   const { role } = useRole()
 
   const routes = [
-    { href: '/', label: 'Dashboard', active: pathname === '/' },
+    { href: '/', label: 'Dashboard', active: pathname === '/' || pathname.startsWith('/orders') },
     { href: '/audit', label: 'Audit Log', active: pathname === '/audit', roles: ['Admin', 'Fleet Supervisor'] }
   ].filter(route => !route.roles || route.roles.includes(role));
 

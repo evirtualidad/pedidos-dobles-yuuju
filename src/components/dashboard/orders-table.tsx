@@ -2,6 +2,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import {
   File,
   PlusCircle,
@@ -194,8 +195,10 @@ export function OrdersTable() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                      <DropdownMenuItem asChild>
+                        <Link href={`/orders/${order.id}`}>Ver Detalles</Link>
+                      </DropdownMenuItem>
                       <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
                       {role === 'Admin' && (
                         <DropdownMenuItem className="text-destructive">
                           Cancelar Orden
