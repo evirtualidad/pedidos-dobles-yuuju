@@ -43,7 +43,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { mockOrders, drivers } from "@/lib/data"
+import { drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
 import { DeleteOrderDialog } from "./delete-order-dialog"
@@ -62,8 +62,8 @@ import { useData } from "@/contexts/data-context"
 export function OrdersTable() {
   const { role, user } = useRole()
   const { toast } = useToast();
-  const { brands, fleets } = useData();
-  const [orders, setOrders] = React.useState<Order[]>(mockOrders);
+  const { brands, fleets, orders, addOrder, updateOrder, deleteOrder, addAuditLog } = useData();
+  
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = React.useState(false);
@@ -111,19 +111,36 @@ export function OrdersTable() {
   }, [orders, filters, role, user.fleet, dateRange]);
 
   const handleAddOrder = (newOrder: Omit<Order, 'id'>) => {
-    const orderWithId = { ...newOrder, id: (orders.length + 1).toString() };
-    setOrders(prevOrders => [orderWithId, ...prevOrders]);
+    addOrder(newOrder);
+     addAuditLog({
+        user: user.name,
+        role: role,
+        action: 'Created Order',
+        details: `Order ${newOrder.orderNumber} created`,
+    });
   };
   
-  const handleUpdateOrder = (updatedOrder: Omit<Order, 'id'>) => {
+  const handleUpdateOrder = (updatedOrderData: Omit<Order, 'id'>) => {
       if(!selectedOrder) return;
-      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...selectedOrder, ...updatedOrder } : o));
+      updateOrder(selectedOrder.id, updatedOrderData);
+      addAuditLog({
+          user: user.name,
+          role: role,
+          action: 'Updated Order',
+          details: `Order ${updatedOrderData.orderNumber} updated`,
+      });
       setSelectedOrder(null);
   };
   
   const handleDeleteOrder = () => {
     if (!selectedOrder) return;
-    setOrders(prev => prev.filter(o => o.id !== selectedOrder.id));
+    deleteOrder(selectedOrder.id);
+    addAuditLog({
+        user: user.name,
+        role: role,
+        action: 'Deleted Order',
+        details: `Order ${selectedOrder.orderNumber} deleted`,
+    });
     toast({
       title: "Orden Eliminada",
       description: `La orden ${selectedOrder.orderNumber} ha sido eliminada.`,

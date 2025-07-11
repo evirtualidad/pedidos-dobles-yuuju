@@ -1,8 +1,10 @@
 
+"use client";
+
 import { Header } from '@/components/header';
 import { RoleProvider } from '@/contexts/role-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { mockOrders } from '@/lib/data';
+import { useData } from '@/contexts/data-context';
 import { notFound } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
@@ -10,12 +12,17 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-
+// Note: This component is client-side because useData hook needs to be.
+// For a fully server-rendered page, you would fetch data differently.
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
-  const order = mockOrders.find(o => o.id === params.id);
+  const { orders } = useData();
+  const order = orders.find(o => o.id === params.id);
 
   if (!order) {
-    notFound();
+    // In a real app, you might want a more sophisticated loading/not-found state
+    // For now, if the context is not loaded yet, it might briefly show notFound.
+    // To fix this, you'd implement a loading state in your DataProvider.
+    return notFound();
   }
 
   return (

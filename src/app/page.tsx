@@ -8,11 +8,11 @@ import { RoleProvider, useRole } from '@/contexts/role-context';
 import { OrdersChart } from '@/components/dashboard/orders-chart';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
-import { mockOrders } from "@/lib/data";
-import type { Order } from "@/lib/types";
+import { Order } from "@/lib/types";
 import { OrdersByBrandChart } from "@/components/dashboard/orders-by-brand-chart";
 import { OrdersByFleetChart } from "@/components/dashboard/orders-by-fleet-chart";
 import { DateRange } from "react-day-picker";
+import { useData } from "@/contexts/data-context";
 
 export interface DashboardFiltersState {
   dateRange: DateRange;
@@ -23,6 +23,7 @@ export interface DashboardFiltersState {
 
 function DashboardPageContent() {
   const { role, user } = useRole();
+  const { orders } = useData();
   const [filters, setFilters] = React.useState<DashboardFiltersState>({
     dateRange: { from: undefined, to: undefined },
     brand: '',
@@ -31,10 +32,10 @@ function DashboardPageContent() {
   });
 
   const filteredOrders = React.useMemo(() => {
-    let ordersToFilter = mockOrders;
+    let ordersToFilter = orders;
     // Apply role-based filtering first
     if (role === 'Fleet Supervisor' && user.fleet) {
-      ordersToFilter = mockOrders.filter(order => order.fleet === user.fleet);
+      ordersToFilter = orders.filter(order => order.fleet === user.fleet);
     }
     
     return ordersToFilter.filter(order => {
@@ -52,7 +53,7 @@ function DashboardPageContent() {
 
       return dateMatch && brandMatch && fleetMatch && typeMatch;
     });
-  }, [filters, role, user.fleet]);
+  }, [filters, role, user.fleet, orders]);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">

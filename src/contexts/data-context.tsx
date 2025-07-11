@@ -2,11 +2,13 @@
 "use client";
 
 import * as React from "react";
-import type { Brand, Fleet, OrderType, UserWithId } from "@/lib/types";
+import type { Brand, Fleet, OrderType, UserWithId, Order, AuditLog } from "@/lib/types";
 import { 
     brands as mockBrands, 
     fleets as mockFleets,
-    orderTypes as mockOrderTypes
+    orderTypes as mockOrderTypes,
+    mockAuditLogs,
+    mockOrders
 } from "@/lib/data";
 
 const initialBrands: Brand[] = mockBrands.map((name, index) => ({ id: (index + 1).toString(), name }));
@@ -39,6 +41,14 @@ type DataContextType = {
   addUser: (user: Omit<UserWithId, 'id'>) => void;
   updateUser: (id: string, user: Omit<UserWithId, 'id'>) => void;
   deleteUser: (id: string) => void;
+
+  orders: Order[];
+  addOrder: (order: Omit<Order, 'id'>) => void;
+  updateOrder: (id: string, order: Omit<Order, 'id'>) => void;
+  deleteOrder: (id: string) => void;
+
+  auditLogs: AuditLog[];
+  addAuditLog: (log: Omit<AuditLog, 'id' | 'timestamp'>) => void;
 };
 
 const DataContext = React.createContext<DataContextType | undefined>(undefined);
@@ -48,6 +58,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const [fleets, setFleets] = React.useState<Fleet[]>(initialFleets);
     const [orderTypes, setOrderTypes] = React.useState<OrderType[]>(initialOrderTypes);
     const [users, setUsers] = React.useState<UserWithId[]>(initialUsers);
+    const [orders, setOrders] = React.useState<Order[]>(mockOrders);
+    const [auditLogs, setAuditLogs] = React.useState<AuditLog[]>(mockAuditLogs);
 
     // Brand Management
     const addBrand = (name: string) => {
@@ -97,13 +109,38 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         setUsers(prev => prev.filter(u => u.id !== id));
     };
 
+    // Order Management
+    const addOrder = (order: Omit<Order, 'id'>) => {
+        const newOrder: Order = { id: (Math.random() * 10000).toString(), ...order };
+        setOrders(prev => [newOrder, ...prev]);
+        return newOrder;
+    };
+    const updateOrder = (id: string, orderData: Omit<Order, 'id'>) => {
+        setOrders(prev => prev.map(o => o.id === id ? { id, ...orderData } : o));
+    };
+    const deleteOrder = (id: string) => {
+        setOrders(prev => prev.filter(o => o.id !== id));
+    };
+
+    // Audit Log Management
+    const addAuditLog = (log: Omit<AuditLog, 'id' | 'timestamp'>) => {
+        const newLog: AuditLog = { 
+            id: (auditLogs.length + 1).toString(), 
+            ...log,
+            timestamp: new Date() 
+        };
+        setAuditLogs(prev => [newLog, ...prev]);
+    }
+
 
     return (
         <DataContext.Provider value={{ 
             brands, addBrand, updateBrand, deleteBrand,
             fleets, addFleet, updateFleet, deleteFleet,
             orderTypes, addOrderType, updateOrderType, deleteOrderType,
-            users, addUser, updateUser, deleteUser
+            users, addUser, updateUser, deleteUser,
+            orders, addOrder, updateOrder, deleteOrder,
+            auditLogs, addAuditLog
         }}>
             {children}
         </DataContext.Provider>
