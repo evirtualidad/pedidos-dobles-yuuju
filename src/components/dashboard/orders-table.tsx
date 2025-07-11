@@ -15,7 +15,6 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Eye
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -368,7 +367,7 @@ export function OrdersTable() {
           </TableHeader>
           <TableBody>
             {paginatedOrders.map((order) => (
-              <TableRow key={order.id}>
+              <TableRow key={order.id} onClick={() => openViewDialog(order)} className="cursor-pointer">
                 <TableCell>
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
@@ -401,7 +400,7 @@ export function OrdersTable() {
                         </TableCell>
                     </>
                 )}
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -411,13 +410,8 @@ export function OrdersTable() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => openViewDialog(order)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Ver Detalles
-                      </DropdownMenuItem>
                       {canEditOrDelete && (
                         <>
-                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => openEditDialog(order)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
@@ -535,3 +529,5 @@ export function OrdersTable() {
     </TooltipProvider>
   )
 }
+
+    
