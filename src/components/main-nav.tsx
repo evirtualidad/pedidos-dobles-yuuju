@@ -13,7 +13,7 @@ export function MainNav() {
   const routes = [
     { href: '/', label: 'Dashboard', active: pathname === '/' },
     { href: '/orders', label: 'Órdenes', active: pathname.startsWith('/orders') },
-    { href: '/audit', label: 'Audit Log', active: pathname === '/audit', roles: ['Admin', 'Fleet Supervisor'] },
+    { href: '/audit', label: 'Audit Log', active: pathname === '/audit', roles: ['Admin'] },
     { href: '/admin', label: 'Gestión', active: pathname.startsWith('/admin'), roles: ['Admin']}
   ].filter(route => !route.roles || route.roles.includes(role));
 

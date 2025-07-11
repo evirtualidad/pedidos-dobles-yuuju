@@ -12,7 +12,7 @@ export function AuditTable() {
     const { role } = useRole();
     const { auditLogs } = useData();
 
-    if (role === 'Data Entry') {
+    if (role !== 'Admin') {
         return (
             <Alert variant="destructive">
                 <Terminal className="h-4 w-4" />
