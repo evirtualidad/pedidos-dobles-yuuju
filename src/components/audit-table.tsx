@@ -6,7 +6,7 @@ import { mockAuditLogs } from "@/lib/data";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Terminal } from "lucide-react";
-import { format } from "date-fns";
+import { ClientDate } from "./client-date";
 
 export function AuditTable() {
     const { role } = useRole();
@@ -15,9 +15,9 @@ export function AuditTable() {
         return (
             <Alert variant="destructive">
                 <Terminal className="h-4 w-4" />
-                <AlertTitle>Access Denied</AlertTitle>
+                <AlertTitle>Acceso Denegado</AlertTitle>
                 <AlertDescription>
-                    You do not have permission to view the audit log.
+                    No tienes permiso para ver el registro de auditoría.
                 </AlertDescription>
             </Alert>
         );
@@ -28,11 +28,11 @@ export function AuditTable() {
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Details</TableHead>
-                    <TableHead>Timestamp</TableHead>
+                    <TableHead>Usuario</TableHead>
+                    <TableHead>Rol</TableHead>
+                    <TableHead>Acción</TableHead>
+                    <TableHead>Detalles</TableHead>
+                    <TableHead>Fecha y Hora</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -42,7 +42,9 @@ export function AuditTable() {
                         <TableCell>{log.role}</TableCell>
                         <TableCell>{log.action}</TableCell>
                         <TableCell className="text-muted-foreground">{log.details}</TableCell>
-                        <TableCell>{format(log.timestamp, "Pp")}</TableCell>
+                        <TableCell>
+                          <ClientDate date={log.timestamp} formatString="Pp" />
+                        </TableCell>
                     </TableRow>
                 ))}
             </TableBody>

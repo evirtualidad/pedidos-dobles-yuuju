@@ -10,11 +10,13 @@ export const mockOrders: Order[] = [
 ];
 
 export const mockAuditLogs: AuditLog[] = [
-  { id: '1', user: 'Admin User', role: 'Admin', action: 'Created Order', timestamp: new Date('2023-10-01T10:00:00Z'), details: 'Order ORD1001 created for John Doe' },
-  { id: '2', user: 'Supervisor Sam', role: 'Fleet Supervisor', action: 'Updated Order', timestamp: new Date('2023-10-02T11:30:00Z'), details: 'Order ORD1002 status changed to Completed' },
-  { id: '3', user: 'Data Clerk', role: 'Data Entry', action: 'Created Order', timestamp: new Date('2023-10-03T09:05:00Z'), details: 'Order ORD1003 created for Mike Johnson' },
-  { id: '4', user: 'Admin User', role: 'Admin', action: 'Cancelled Order', timestamp: new Date('2023-10-05T15:20:00Z'), details: 'Order ORD1005 cancelled' },
-  { id: '5', user: 'Supervisor Sam', role: 'Fleet Supervisor', action: 'Exported Data', timestamp: new Date('2023-10-08T16:00:00Z'), details: 'Exported all orders to PDF' },
+    { id: '1', user: 'Admin User', role: 'Admin', action: 'Created Order', timestamp: new Date('2023-10-01T10:00:00Z'), details: 'Order ORD1001 created' },
+    { id: '2', user: 'Data Clerk', role: 'Data Entry', action: 'Created Order', timestamp: new Date('2023-10-02T11:30:00Z'), details: 'Order ORD1002 created' },
+    { id: '3', user: 'Supervisor Sam', role: 'Fleet Supervisor', action: 'Updated Order', timestamp: new Date('2023-10-03T09:05:00Z'), details: 'Order ORD1002 status changed to Completed' },
+    { id: '4', user: 'Admin User', role: 'Admin', action: 'Updated User', timestamp: new Date('2023-10-04T14:00:00Z'), details: 'User "Data Clerk" role updated' },
+    { id: '5', user: 'Admin User', role: 'Admin', action: 'Cancelled Order', timestamp: new Date('2023-10-05T15:20:00Z'), details: 'Order ORD1005 cancelled due to wrong address' },
+    { id: '6', user: 'Supervisor Sam', role: 'Fleet Supervisor', action: 'Exported Data', timestamp: new Date('2023-10-08T16:00:00Z'), details: 'Exported all fleet orders to CSV' },
+    { id: '7', user: 'Admin User', role: 'Admin', action: 'Created Fleet', timestamp: new Date('2023-10-09T12:00:00Z'), details: 'Fleet "Fleet 4" was created' },
 ];
 
 export const drivers = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Emily Davis', 'Chris Lee'];

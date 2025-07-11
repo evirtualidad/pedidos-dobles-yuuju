@@ -13,9 +13,9 @@ export default function AuditLogPage() {
             <div className="max-w-5xl mx-auto w-full">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Audit Log</CardTitle>
+                        <CardTitle>Registro de Auditoría</CardTitle>
                         <CardDescription>
-                        Track all order-related activities and user actions here.
+                        Rastrea todas las actividades relacionadas con los pedidos y las acciones de los usuarios.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
