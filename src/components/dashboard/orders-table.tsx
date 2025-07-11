@@ -90,12 +90,14 @@ export function OrdersTable() {
   const fleetNames = fleets.map(f => f.name);
 
   const handleFilterChange = (filterName: keyof typeof filters, value: string) => {
+    // Reset page index when filters change
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+    
     if (value.startsWith('all-')) {
       setFilters(prev => ({ ...prev, [filterName]: '' }));
     } else {
       setFilters(prev => ({ ...prev, [filterName]: value }));
     }
-    setPagination(prev => ({ ...prev, pageIndex: 0 }));
   };
   
   const handleDateChange = (range: DateRange | undefined) => {
@@ -454,7 +456,7 @@ export function OrdersTable() {
                         }}
                     >
                         <SelectTrigger className="h-8 w-[70px]">
-                            <SelectValue placeholder={pagination.pageSize} />
+                            <SelectValue placeholder={`${pagination.pageSize}`} />
                         </SelectTrigger>
                         <SelectContent side="top">
                             {[10, 20, 30, 40, 50].map((pageSize) => (
@@ -466,7 +468,7 @@ export function OrdersTable() {
                     </Select>
                 </div>
                 <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                    Página {pagination.pageIndex + 1} de {pageCount}
+                    Página {pageCount > 0 ? pagination.pageIndex + 1 : 0} de {pageCount}
                 </div>
                 <div className="flex items-center space-x-2">
                     <Button
