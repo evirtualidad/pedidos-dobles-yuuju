@@ -192,7 +192,6 @@ export function OrdersTable() {
   };
 
   const canAddOrder = role === 'Admin' || role === 'Data Entry';
-  const canExport = filteredOrders.length > 0;
 
   return (
     <>
@@ -206,7 +205,7 @@ export function OrdersTable() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport} disabled={!canExport}>
+                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                     <Download className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                         Exportar
