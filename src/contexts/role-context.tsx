@@ -1,18 +1,29 @@
 "use client";
-import type { Role } from "@/lib/types";
+import type { Role, User } from "@/lib/types";
 import { createContext, useContext, useState, ReactNode } from "react";
+
+// Mock user data based on role
+const users: Record<Role, User> = {
+    'Admin': { name: 'Admin User', role: 'Admin'},
+    'Fleet Supervisor': { name: 'Supervisor Sam', role: 'Fleet Supervisor'},
+    'Data Entry': { name: 'Data Clerk', role: 'Data Entry'}
+}
 
 type RoleContextType = {
   role: Role;
   setRole: (role: Role) => void;
+  user: User;
 };
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>("Admin");
+
+  const user = users[role];
+
   return (
-    <RoleContext.Provider value={{ role, setRole }}>
+    <RoleContext.Provider value={{ role, setRole, user }}>
       {children}
     </RoleContext.Provider>
   );

@@ -1,13 +1,12 @@
 import type { Order, AuditLog } from './types';
 
+// Mock data representing what might come from Firebase
 export const mockOrders: Order[] = [
-  { id: '1', orderNumber: 'ORD1001', date: new Date('2023-10-01'), driver: 'John Doe', type: 'Delivery', brand: 'Brand A', fleet: 'Fleet 1', status: 'Completed' },
-  { id: '2', orderNumber: 'ORD1002', date: new Date('2023-10-02'), driver: 'Jane Smith', type: 'Pickup', brand: 'Brand B', fleet: 'Fleet 2', status: 'Completed' },
-  { id: '3', orderNumber: 'ORD1003', date: new Date('2023-10-03'), driver: 'Mike Johnson', type: 'Delivery', brand: 'Brand A', fleet: 'Fleet 1', status: 'Pending' },
-  { id: '4', orderNumber: 'ORD1004', date: new Date('2023-10-04'), driver: 'Emily Davis', type: 'Delivery', brand: 'Brand C', fleet: 'Fleet 3', status: 'Pending' },
-  { id: '5', orderNumber: 'ORD1005', date: new Date('2023-10-05'), driver: 'John Doe', type: 'Pickup', brand: 'Brand B', fleet: 'Fleet 2', status: 'Cancelled' },
-  { id: '6', orderNumber: 'ORD1006', date: new Date('2023-10-06'), driver: 'Chris Lee', type: 'Delivery', brand: 'Brand C', fleet: 'Fleet 3', status: 'Completed' },
-  { id: '7', orderNumber: 'ORD1007', date: new Date('2023-10-07'), driver: 'Jane Smith', type: 'Delivery', brand: 'Brand A', fleet: 'Fleet 1', status: 'Pending' },
+  { id: '1', orderNumber: 'ORD1001', date: new Date('2023-10-01'), driver: 'John Doe', type: 'Standard Delivery', brand: 'Brand A', fleet: 'Fleet 1', status: 'Completed', quantity: 1, observations: 'N/A', enteredBy: 'Admin User' },
+  { id: '2', orderNumber: 'ORD1002', date: new Date('2023-10-02'), driver: 'Jane Smith', type: 'Express Pickup', brand: 'Brand B', fleet: 'Fleet 2', status: 'Completed', quantity: 2, observations: 'Fragile items', enteredBy: 'Data Clerk' },
+  { id: '3', orderNumber: 'ORD1003', date: new Date('2023-10-03'), driver: 'Mike Johnson', type: 'Standard Delivery', brand: 'Brand A', fleet: 'Fleet 1', status: 'Pending', quantity: 1, observations: '', enteredBy: 'Data Clerk' },
+  { id: '4', orderNumber: 'ORD1004', date: new Date('2023-10-04'), driver: 'Emily Davis', type: 'Standard Delivery', brand: 'Brand C', fleet: 'Fleet 3', status: 'Pending', quantity: 3, observations: 'Customer will call', enteredBy: 'Admin User' },
+  { id: '5', orderNumber: 'ORD1005', date: new Date('2023-10-05'), driver: 'John Doe', type: 'Express Pickup', brand: 'Brand B', fleet: 'Fleet 2', status: 'Cancelled', quantity: 1, observations: 'Wrong address', enteredBy: 'Supervisor Sam' },
 ];
 
 export const mockAuditLogs: AuditLog[] = [
@@ -21,3 +20,4 @@ export const mockAuditLogs: AuditLog[] = [
 export const drivers = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Emily Davis', 'Chris Lee'];
 export const brands = ['Brand A', 'Brand B', 'Brand C'];
 export const fleets = ['Fleet 1', 'Fleet 2', 'Fleet 3'];
+export const orderTypes = ['Standard Delivery', 'Express Pickup', 'Return'];

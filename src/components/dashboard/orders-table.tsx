@@ -48,25 +48,27 @@ export function OrdersTable() {
     const orderWithId = { ...newOrder, id: (orders.length + 1).toString() };
     setOrders(prevOrders => [orderWithId, ...prevOrders]);
   };
+  
+  const canAddOrder = role === 'Admin' || role === 'Data Entry';
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
             <div>
-                <CardTitle>Orders</CardTitle>
+                <CardTitle>Órdenes</CardTitle>
                 <CardDescription>
-                    Manage your orders and view their sales performance.
+                    Administra las órdenes y visualiza su estado.
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
                 <Button size="sm" variant="outline" className="h-8 gap-1">
                     <Download className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Export
+                        Exportar
                     </span>
                 </Button>
-                {role !== 'Data Entry' && (
+                {canAddOrder && (
                     <CreateOrderDialog 
                         isOpen={isDialogOpen} 
                         setIsOpen={setIsDialogOpen}
@@ -76,7 +78,7 @@ export function OrdersTable() {
                         <Button size="sm" className="h-8 gap-1 bg-primary hover:bg-primary/90">
                             <PlusCircle className="h-3.5 w-3.5" />
                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                            Add Order
+                            Agregar Orden
                             </span>
                         </Button>
                     </CreateOrderDialog>
@@ -84,10 +86,10 @@ export function OrdersTable() {
             </div>
         </div>
         <div className="mt-4 flex items-center gap-2 flex-wrap">
-            <Input placeholder="Filter by Order #" className="max-w-xs h-9"/>
+            <Input placeholder="Filtrar por No. Orden..." className="max-w-xs h-9"/>
             <Select>
-                <SelectTrigger className="w-[160px] h-9">
-                    <SelectValue placeholder="Filter by driver" />
+                <SelectTrigger className="w-[180px] h-9">
+                    <SelectValue placeholder="Filtrar por motorista" />
                 </SelectTrigger>
                 <SelectContent>
                     {drivers.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
@@ -95,16 +97,7 @@ export function OrdersTable() {
             </Select>
             <Select>
                 <SelectTrigger className="w-[160px] h-9">
-                    <SelectValue placeholder="Filter by type" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="Pickup">Pickup</SelectItem>
-                    <SelectItem value="Delivery">Delivery</SelectItem>
-                </SelectContent>
-            </Select>
-            <Select>
-                <SelectTrigger className="w-[160px] h-9">
-                    <SelectValue placeholder="Filter by brand" />
+                    <SelectValue placeholder="Filtrar por marca" />
                 </SelectTrigger>
                 <SelectContent>
                     {brands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
@@ -112,7 +105,7 @@ export function OrdersTable() {
             </Select>
             <Select>
                 <SelectTrigger className="w-[160px] h-9">
-                    <SelectValue placeholder="Filter by fleet" />
+                    <SelectValue placeholder="Filtrar por flota" />
                 </SelectTrigger>
                 <SelectContent>
                     {fleets.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
@@ -124,14 +117,15 @@ export function OrdersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order #</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Driver</TableHead>
-              <TableHead className="hidden md:table-cell">Type</TableHead>
-              <TableHead className="hidden md:table-cell">Fleet</TableHead>
-              <TableHead className="hidden md:table-cell">Date</TableHead>
+              <TableHead>No. Orden</TableHead>
+              <TableHead>Motorista</TableHead>
+              <TableHead>Marca</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Flota</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Creado por</TableHead>
               <TableHead>
-                <span className="sr-only">Actions</span>
+                <span className="sr-only">Acciones</span>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -139,18 +133,14 @@ export function OrdersTable() {
             {orders.map((order) => (
               <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                <TableCell>
-                  <Badge variant={order.status === 'Completed' ? 'default' : order.status === 'Pending' ? 'secondary' : 'destructive'} 
-                         className={order.status === 'Completed' ? 'bg-green-600' : order.status === 'Pending' ? 'bg-yellow-500' : 'bg-red-600'}>
-                      {order.status}
-                  </Badge>
-                </TableCell>
                 <TableCell>{order.driver}</TableCell>
-                <TableCell className="hidden md:table-cell">{order.type}</TableCell>
-                <TableCell className="hidden md:table-cell">{order.fleet}</TableCell>
-                <TableCell className="hidden md:table-cell">
+                <TableCell>{order.brand}</TableCell>
+                <TableCell>{order.type}</TableCell>
+                <TableCell>{order.fleet}</TableCell>
+                <TableCell>
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
+                <TableCell>{order.enteredBy}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -160,12 +150,12 @@ export function OrdersTable() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
+                      <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                      <DropdownMenuItem>Editar</DropdownMenuItem>
+                      <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
                       {role === 'Admin' && (
                         <DropdownMenuItem className="text-destructive">
-                          Cancel Order
+                          Cancelar Orden
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>
