@@ -348,7 +348,7 @@ export function OrdersTable() {
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
                 <TableCell>{order.driver}</TableCell>
-                <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                <TableCell>{order.orderNumber}</TableCell>
                 <TableCell>{order.brand}</TableCell>
                 <TableCell>{order.type}</TableCell>
                 {!isSupervisorView && <TableCell>{order.fleet}</TableCell>}

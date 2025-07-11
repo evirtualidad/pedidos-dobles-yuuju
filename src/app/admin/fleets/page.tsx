@@ -83,7 +83,7 @@ export default function AdminFleetsPage() {
                             <TableBody>
                                 {fleets.map(fleet => (
                                     <TableRow key={fleet.id}>
-                                        <TableCell className="font-medium">{fleet.name}</TableCell>
+                                        <TableCell>{fleet.name}</TableCell>
                                         <TableCell>
                                             <div className="flex justify-end">
                                                 <DropdownMenu>

@@ -83,7 +83,7 @@ export default function AdminOrderTypesPage() {
                             <TableBody>
                                 {orderTypes.map(orderType => (
                                     <TableRow key={orderType.id}>
-                                        <TableCell className="font-medium">{orderType.name}</TableCell>
+                                        <TableCell>{orderType.name}</TableCell>
                                         <TableCell>
                                             <div className="flex justify-end">
                                                 <DropdownMenu>

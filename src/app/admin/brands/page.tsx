@@ -83,7 +83,7 @@ export default function AdminBrandsPage() {
                             <TableBody>
                                 {brands.map(brand => (
                                     <TableRow key={brand.id}>
-                                        <TableCell className="font-medium">{brand.name}</TableCell>
+                                        <TableCell>{brand.name}</TableCell>
                                         <TableCell>
                                             <div className="flex justify-end">
                                                 <DropdownMenu>

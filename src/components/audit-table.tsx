@@ -41,7 +41,7 @@ export function AuditTable() {
             <TableBody>
                 {sortedLogs.map(log => (
                     <TableRow key={log.id}>
-                        <TableCell className="font-medium">{log.user}</TableCell>
+                        <TableCell>{log.user}</TableCell>
                         <TableCell>{log.role}</TableCell>
                         <TableCell>{log.action}</TableCell>
                         <TableCell className="text-muted-foreground">{log.details}</TableCell>

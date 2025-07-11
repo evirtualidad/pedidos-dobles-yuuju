@@ -87,7 +87,7 @@ export default function AdminUsersPage() {
                             <TableBody>
                                 {users.map(user => (
                                     <TableRow key={user.id}>
-                                        <TableCell className="font-medium">{user.name}</TableCell>
+                                        <TableCell>{user.name}</TableCell>
                                         <TableCell>{user.role}</TableCell>
                                         <TableCell>{user.fleet || 'N/A'}</TableCell>
                                         <TableCell>
