@@ -12,10 +12,6 @@ interface StatsCardsProps {
 export function StatsCards({ orders }: StatsCardsProps) {
     const { role } = useRole();
 
-    if (role === 'Data Entry') {
-        return null;
-    }
-
     const totalOrders = orders.length;
 
     const uniqueDrivers = new Set(orders.map(order => order.driver));

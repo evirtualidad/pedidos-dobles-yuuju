@@ -51,10 +51,6 @@ export function OrdersChart({ orders }: OrdersChartProps) {
         return monthlyData;
     }, [orders]);
 
-    if (role === 'Data Entry') {
-        return null;
-    }
-    
     return (
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <BarChart accessibilityLayer data={chartData}>

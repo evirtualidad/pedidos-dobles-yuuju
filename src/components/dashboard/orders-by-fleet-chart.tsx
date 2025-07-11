@@ -54,10 +54,6 @@ export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
         return fleetCounts.filter(f => f.total > 0);
     }, [orders, fleets]);
 
-    if (role === 'Data Entry') {
-        return null;
-    }
-
   return (
     <ChartContainer
         config={chartConfig}

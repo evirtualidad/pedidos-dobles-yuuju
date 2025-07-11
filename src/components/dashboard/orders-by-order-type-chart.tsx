@@ -54,10 +54,6 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
         return orderTypeCounts.filter(b => b.total > 0);
     }, [orders, orderTypes]);
 
-    if (role === 'Data Entry') {
-        return null;
-    }
-
   return (
     <ChartContainer
         config={chartConfig}

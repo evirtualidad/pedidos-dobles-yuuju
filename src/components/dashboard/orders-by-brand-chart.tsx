@@ -54,10 +54,6 @@ export function OrdersByBrandChart({ orders }: OrdersByBrandChartProps) {
         return brandCounts.filter(b => b.total > 0);
     }, [orders, brands]);
 
-    if (role === 'Data Entry') {
-        return null;
-    }
-
   return (
     <ChartContainer
         config={chartConfig}
