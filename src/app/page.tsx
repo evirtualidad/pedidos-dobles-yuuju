@@ -13,9 +13,10 @@ import type { Order } from "@/lib/types";
 import { OrdersByBrandChart } from "@/components/dashboard/orders-by-brand-chart";
 import { OrdersByFleetChart } from "@/components/dashboard/orders-by-fleet-chart";
 import { OrdersByStatusChart } from "@/components/dashboard/orders-by-status-chart";
+import { DateRange } from "react-day-picker";
 
 export interface DashboardFiltersState {
-  dateRange: { from?: Date; to?: Date };
+  dateRange: DateRange;
   brand: string;
   fleet: string;
   type: string;
@@ -23,7 +24,7 @@ export interface DashboardFiltersState {
 
 export default function DashboardPage() {
   const [filters, setFilters] = React.useState<DashboardFiltersState>({
-    dateRange: {},
+    dateRange: { from: undefined, to: undefined },
     brand: '',
     fleet: '',
     type: '',

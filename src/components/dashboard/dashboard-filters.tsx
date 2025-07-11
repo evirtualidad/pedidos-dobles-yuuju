@@ -20,7 +20,7 @@ interface DashboardFiltersProps {
 
 export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersProps) {
   const handleDateChange = (dateRange?: DateRange) => {
-    onFiltersChange({ ...filters, dateRange: dateRange || {} });
+    onFiltersChange({ ...filters, dateRange: dateRange || { from: undefined, to: undefined } });
   };
 
   const handleFilterChange = (filterName: keyof Omit<DashboardFiltersState, 'dateRange'>, value: string) => {
