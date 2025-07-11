@@ -1,19 +1,23 @@
 
 import { RoleProvider } from "@/contexts/role-context";
 import { AdminLayout } from "@/components/admin/admin-layout";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AdminPage() {
     return (
         <RoleProvider>
             <AdminLayout>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Bienvenido, Admin</h2>
-                        <p className="text-muted-foreground">
-                            Aquí puedes gestionar la configuración de tu aplicación.
-                        </p>
-                    </div>
-                </div>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Bienvenido, Admin</CardTitle>
+                        <CardDescription>
+                            Usa la navegación a la izquierda para gestionar tu aplicación.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p>Aquí puedes gestionar flotas, marcas, tipos de pedido y usuarios.</p>
+                    </CardContent>
+                </Card>
             </AdminLayout>
         </RoleProvider>
     )
