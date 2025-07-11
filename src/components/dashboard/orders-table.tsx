@@ -7,6 +7,7 @@ import {
   MoreHorizontal,
   Download
 } from "lucide-react"
+import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -148,7 +149,7 @@ export function OrdersTable() {
                 <TableCell className="hidden md:table-cell">{order.type}</TableCell>
                 <TableCell className="hidden md:table-cell">{order.fleet}</TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {order.date.toLocaleDateString()}
+                  {format(order.date, "MM/dd/yyyy")}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
