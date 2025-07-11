@@ -34,7 +34,7 @@ export function ViewOrderDialog({ isOpen, setIsOpen, order }: ViewOrderDialogPro
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                 <div>
                     <p className="text-sm font-medium text-muted-foreground">Motorista</p>
                     <p>{order.driver}</p>
@@ -43,22 +43,19 @@ export function ViewOrderDialog({ isOpen, setIsOpen, order }: ViewOrderDialogPro
                     <p className="text-sm font-medium text-muted-foreground">Fecha de Ingreso</p>
                     <p>{format(order.date, "PPP")}</p>
                 </div>
-            </div>
-            <Separator />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
+                 <div>
                     <p className="text-sm font-medium text-muted-foreground">Marca</p>
                     <p>{order.brand}</p>
                 </div>
                 <div>
-                    <p className="text-sm font-medium text-muted-foreground">Tipo</p>
+                    <p className="text-sm font-medium text-muted-foreground">Tipo de Pedido</p>
                     <p>{order.type}</p>
                 </div>
                 <div>
                     <p className="text-sm font-medium text-muted-foreground">Flota</p>
                     <p>{order.fleet}</p>
                 </div>
-                    <div>
+                <div>
                     <p className="text-sm font-medium text-muted-foreground">Cantidad</p>
                     <p>{order.quantity}</p>
                 </div>
@@ -66,14 +63,14 @@ export function ViewOrderDialog({ isOpen, setIsOpen, order }: ViewOrderDialogPro
             <Separator />
             <div>
                 <p className="text-sm font-medium text-muted-foreground">Observaciones</p>
-                <p className="mt-1 text-sm">
+                <p className="mt-1 text-sm text-foreground/90">
                     {order.observations || 'Sin observaciones.'}
                 </p>
             </div>
-                <Separator />
-                <div>
+            <Separator />
+            <div>
                 <p className="text-sm font-medium text-muted-foreground">Ingresado por</p>
-                <p className="mt-1 text-sm">{order.enteredBy}</p>
+                <p className="mt-1 text-sm text-foreground/90">{order.enteredBy}</p>
             </div>
         </div>
         <DialogFooter>
@@ -85,5 +82,3 @@ export function ViewOrderDialog({ isOpen, setIsOpen, order }: ViewOrderDialogPro
     </Dialog>
   )
 }
-
-    
