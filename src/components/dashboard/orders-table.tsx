@@ -206,12 +206,11 @@ export function OrdersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>No. Orden</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Motorista</TableHead>
-              <TableHead>Marca</TableHead>
-              <TableHead>Flota</TableHead>
               <TableHead>Fecha</TableHead>
+              <TableHead>Motorista</TableHead>
+              <TableHead>Flota</TableHead>
+              <TableHead>No. Orden</TableHead>
+              <TableHead>Tipo de Pedido</TableHead>
               <TableHead>Creado por</TableHead>
               <TableHead>
                 <span className="sr-only">Acciones</span>
@@ -221,14 +220,13 @@ export function OrdersTable() {
           <TableBody>
             {filteredOrders.map((order) => (
               <TableRow key={order.id} className={order.status === 'Cancelled' ? 'text-muted-foreground' : ''}>
-                <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                <TableCell><Badge variant={getStatusVariant(order.status)}>{order.status}</Badge></TableCell>
-                <TableCell>{order.driver}</TableCell>
-                <TableCell>{order.brand}</TableCell>
-                <TableCell>{order.fleet}</TableCell>
                 <TableCell>
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
+                <TableCell>{order.driver}</TableCell>
+                <TableCell>{order.fleet}</TableCell>
+                <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                <TableCell>{order.type}</TableCell>
                 <TableCell>{order.enteredBy}</TableCell>
                 <TableCell>
                   <DropdownMenu>
