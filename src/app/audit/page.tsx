@@ -9,17 +9,19 @@ export default function AuditLogPage() {
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <Header />
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Audit Log</CardTitle>
-                    <CardDescription>
-                    Track all order-related activities and user actions here.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <AuditTable />
-                </CardContent>
-            </Card>
+            <div className="max-w-5xl mx-auto w-full">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Audit Log</CardTitle>
+                        <CardDescription>
+                        Track all order-related activities and user actions here.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <AuditTable />
+                    </CardContent>
+                </Card>
+            </div>
         </main>
       </div>
     </RoleProvider>
