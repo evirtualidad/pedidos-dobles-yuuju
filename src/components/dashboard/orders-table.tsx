@@ -534,5 +534,3 @@ export function OrdersTable() {
     </TooltipProvider>
   )
 }
-
-    
