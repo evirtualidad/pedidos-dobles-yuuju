@@ -4,13 +4,13 @@
 import * as React from "react"
 import { format } from "date-fns"
 import Papa from "papaparse"
+import { useRouter } from 'next/navigation'
 import {
   PlusCircle,
   MoreHorizontal,
   Download,
   Calendar as CalendarIcon,
   Trash2,
-  View,
   Edit,
   ChevronLeft,
   ChevronRight,
@@ -52,7 +52,6 @@ import { drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
 import { DeleteOrderDialog } from "./delete-order-dialog"
-import { ViewOrderDialog } from "./view-order-dialog"
 import { useRole } from "@/contexts/role-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
@@ -67,11 +66,11 @@ import { useData } from "@/contexts/data-context"
 export function OrdersTable() {
   const { role, user } = useRole()
   const { toast } = useToast();
+  const router = useRouter();
   const { brands, fleets, orders, addOrder, updateOrder, deleteOrder, addAuditLog } = useData();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   
   const [filters, setFilters] = React.useState({
@@ -211,11 +210,6 @@ export function OrdersTable() {
         description: `${filteredOrders.length} órdenes han sido exportadas a ordenes.csv`,
     });
   }
-  
-  const openViewDialog = (order: Order) => {
-    setSelectedOrder(order);
-    setIsViewDialogOpen(true);
-  };
 
   const openEditDialog = (order: Order) => {
     setSelectedOrder(order);
@@ -368,7 +362,11 @@ export function OrdersTable() {
           </TableHeader>
           <TableBody>
             {paginatedOrders.map((order) => (
-              <TableRow key={order.id}>
+              <TableRow 
+                key={order.id} 
+                className="cursor-pointer" 
+                onClick={() => router.push(`/orders/${order.id}`)}
+              >
                 <TableCell>
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
@@ -401,7 +399,7 @@ export function OrdersTable() {
                         </TableCell>
                     </>
                 )}
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -411,10 +409,6 @@ export function OrdersTable() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => openViewDialog(order)}>
-                        <View className="mr-2 h-4 w-4" />
-                        Ver Detalles
-                      </DropdownMenuItem>
                       {canEditOrDelete && (
                         <>
                           <DropdownMenuItem onClick={() => openEditDialog(order)}>
@@ -524,12 +518,6 @@ export function OrdersTable() {
         setIsOpen={setIsDeleteDialogOpen}
         onConfirm={handleDeleteOrder}
         orderNumber={selectedOrder?.orderNumber}
-    />
-
-    <ViewOrderDialog
-      isOpen={isViewDialogOpen}
-      setIsOpen={setIsViewDialogOpen}
-      order={selectedOrder}
     />
     
     </TooltipProvider>
