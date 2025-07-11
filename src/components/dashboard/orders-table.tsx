@@ -124,7 +124,7 @@ export function OrdersTable() {
       'Observaciones': o.observations,
     }));
     
-    const csv = Papa.unparse(dataToExport);
+    const csv = Papa.unparse(dataToExport, { delimiter: ';' });
     // Add BOM for Excel compatibility
     const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -313,3 +313,5 @@ export function OrdersTable() {
     </>
   )
 }
+
+    
