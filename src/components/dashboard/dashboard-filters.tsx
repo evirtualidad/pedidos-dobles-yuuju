@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { useData } from "@/contexts/data-context";
 import type { DashboardFiltersState } from "@/app/page";
+import { useRole } from "@/contexts/role-context";
 
 interface DashboardFiltersProps {
   filters: DashboardFiltersState;
@@ -20,6 +21,7 @@ interface DashboardFiltersProps {
 
 export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersProps) {
   const { brands, fleets, orderTypes } = useData();
+  const { role } = useRole();
   
   const brandNames = brands.map(b => b.name);
   const fleetNames = fleets.map(f => f.name);
@@ -84,15 +86,17 @@ export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersP
         </SelectContent>
       </Select>
 
-      <Select value={filters.fleet || 'all'} onValueChange={value => handleFilterChange('fleet', value)}>
-        <SelectTrigger className="w-[180px] h-10">
-          <SelectValue placeholder="Filtrar por flota" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todas las Flotas</SelectItem>
-          {fleetNames.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-        </SelectContent>
-      </Select>
+      {role !== 'Fleet Supervisor' && (
+        <Select value={filters.fleet || 'all'} onValueChange={value => handleFilterChange('fleet', value)}>
+            <SelectTrigger className="w-[180px] h-10">
+            <SelectValue placeholder="Filtrar por flota" />
+            </SelectTrigger>
+            <SelectContent>
+            <SelectItem value="all">Todas las Flotas</SelectItem>
+            {fleetNames.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+            </SelectContent>
+        </Select>
+      )}
 
       <Select value={filters.type || 'all'} onValueChange={value => handleFilterChange('type', value)}>
         <SelectTrigger className="w-[180px] h-10">

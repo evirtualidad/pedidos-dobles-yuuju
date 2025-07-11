@@ -1,6 +1,7 @@
 
 import { Header } from '@/components/header';
 import { OrdersTable } from '@/components/dashboard/orders-table';
+import { DataProvider } from '@/contexts/data-context';
 import { RoleProvider } from '@/contexts/role-context';
 
 export default function OrdersPage() {
