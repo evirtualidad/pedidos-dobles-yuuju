@@ -74,7 +74,7 @@ export function OrdersTable() {
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   
   const [filters, setFilters] = React.useState({
-    orderNumber: '',
+    searchTerm: '',
     driver: '',
     brand: '',
     fleet: '',
@@ -109,15 +109,21 @@ export function OrdersTable() {
         roleFilteredOrders = orders.filter(order => order.fleet === user.fleet);
     }
 
+    const lowercasedSearchTerm = filters.searchTerm.toLowerCase();
+
     return roleFilteredOrders.filter(order => {
       const orderDate = order.date;
       const dateMatch =
         (!dateRange?.from || orderDate >= dateRange.from) &&
         (!dateRange?.to || orderDate <= dateRange.to);
+      
+      const searchMatch = lowercasedSearchTerm === '' ||
+        order.orderNumber.toLowerCase().includes(lowercasedSearchTerm) ||
+        order.driver.toLowerCase().includes(lowercasedSearchTerm);
 
       return (
         dateMatch &&
-        (filters.orderNumber === '' || order.orderNumber.toLowerCase().includes(filters.orderNumber.toLowerCase())) &&
+        searchMatch &&
         (filters.driver === '' || order.driver === filters.driver) &&
         (filters.brand === '' || order.brand === filters.brand) &&
         (filters.fleet === '' || order.fleet === filters.fleet)
@@ -267,10 +273,10 @@ export function OrdersTable() {
         </div>
         <div className="mt-4 flex items-center gap-2 flex-wrap">
             <Input 
-                placeholder="Filtrar por No. Orden..." 
+                placeholder="Buscar por No. Orden o Motorista..." 
                 className="max-w-xs h-9"
-                value={filters.orderNumber}
-                onChange={e => handleFilterChange('orderNumber', e.target.value)}
+                value={filters.searchTerm}
+                onChange={e => handleFilterChange('searchTerm', e.target.value)}
             />
              <Popover>
               <PopoverTrigger asChild>
@@ -529,5 +535,3 @@ export function OrdersTable() {
     </TooltipProvider>
   )
 }
-
-    
