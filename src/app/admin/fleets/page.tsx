@@ -13,9 +13,11 @@ import { CreateFleetDialog } from "@/components/admin/create-fleet-dialog";
 import { DeleteFleetDialog } from "@/components/admin/delete-fleet-dialog";
 import type { Fleet } from "@/lib/types";
 import { useData } from "@/contexts/data-context";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminFleetsPage() {
-    const { fleets, addFleet, updateFleet, deleteFleet } = useData();
+    const { fleets, orders, addFleet, updateFleet, deleteFleet } = useData();
+    const { toast } = useToast();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedFleet, setSelectedFleet] = React.useState<Fleet | null>(null);
@@ -31,6 +33,19 @@ export default function AdminFleetsPage() {
 
     const handleDeleteFleet = () => {
         if (selectedFleet) {
+            const isFleetInUse = orders.some(order => order.fleet === selectedFleet.name);
+
+            if (isFleetInUse) {
+                toast({
+                    variant: "destructive",
+                    title: "Error al eliminar",
+                    description: `La flota "${selectedFleet.name}" está en uso y no puede ser eliminada.`,
+                });
+                setIsDeleteDialogOpen(false);
+                setSelectedFleet(null);
+                return;
+            }
+            
             deleteFleet(selectedFleet.id);
             setIsDeleteDialogOpen(false);
             setSelectedFleet(null);

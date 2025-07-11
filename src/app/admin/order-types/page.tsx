@@ -13,9 +13,11 @@ import { CreateOrderTypeDialog } from "@/components/admin/create-order-type-dial
 import { DeleteOrderTypeDialog } from "@/components/admin/delete-order-type-dialog";
 import type { OrderType } from "@/lib/types";
 import { useData } from "@/contexts/data-context";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminOrderTypesPage() {
-    const { orderTypes, addOrderType, updateOrderType, deleteOrderType } = useData();
+    const { orderTypes, orders, addOrderType, updateOrderType, deleteOrderType } = useData();
+    const { toast } = useToast();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedOrderType, setSelectedOrderType] = React.useState<OrderType | null>(null);
@@ -31,6 +33,19 @@ export default function AdminOrderTypesPage() {
 
     const handleDeleteOrderType = () => {
         if (selectedOrderType) {
+            const isOrderTypeInUse = orders.some(order => order.type === selectedOrderType.name);
+
+            if (isOrderTypeInUse) {
+                toast({
+                    variant: "destructive",
+                    title: "Error al eliminar",
+                    description: `El tipo de pedido "${selectedOrderType.name}" está en uso y no puede ser eliminado.`,
+                });
+                setIsDeleteDialogOpen(false);
+                setSelectedOrderType(null);
+                return;
+            }
+
             deleteOrderType(selectedOrderType.id);
             setIsDeleteDialogOpen(false);
             setSelectedOrderType(null);

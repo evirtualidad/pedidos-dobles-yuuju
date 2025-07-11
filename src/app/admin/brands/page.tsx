@@ -13,9 +13,11 @@ import { CreateBrandDialog } from "@/components/admin/create-brand-dialog";
 import { DeleteBrandDialog } from "@/components/admin/delete-brand-dialog";
 import type { Brand } from "@/lib/types";
 import { useData } from "@/contexts/data-context";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminBrandsPage() {
-    const { brands, addBrand, updateBrand, deleteBrand } = useData();
+    const { brands, orders, addBrand, updateBrand, deleteBrand } = useData();
+    const { toast } = useToast();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedBrand, setSelectedBrand] = React.useState<Brand | null>(null);
@@ -31,6 +33,19 @@ export default function AdminBrandsPage() {
 
     const handleDeleteBrand = () => {
         if (selectedBrand) {
+            const isBrandInUse = orders.some(order => order.brand === selectedBrand.name);
+
+            if (isBrandInUse) {
+                toast({
+                    variant: "destructive",
+                    title: "Error al eliminar",
+                    description: `La marca "${selectedBrand.name}" está en uso y no puede ser eliminada.`,
+                });
+                setIsDeleteDialogOpen(false);
+                setSelectedBrand(null);
+                return;
+            }
+
             deleteBrand(selectedBrand.id);
             setIsDeleteDialogOpen(false);
             setSelectedBrand(null);
