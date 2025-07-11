@@ -306,6 +306,7 @@ export function OrdersTable() {
               <TableHead>Flota</TableHead>
               <TableHead>No. Orden</TableHead>
               <TableHead>Tipo de Pedido</TableHead>
+              <TableHead>Marca</TableHead>
               {isAdminView ? (
                 <>
                   <TableHead className="text-center">Cantidad</TableHead>
@@ -332,6 +333,7 @@ export function OrdersTable() {
                 <TableCell>{order.fleet}</TableCell>
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
                 <TableCell>{order.type}</TableCell>
+                <TableCell>{order.brand}</TableCell>
                 {isAdminView ? (
                     <>
                         <TableCell className="text-center">{order.quantity}</TableCell>
