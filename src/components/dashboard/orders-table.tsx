@@ -287,15 +287,17 @@ export function OrdersTable() {
                     {brandNames.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                 </SelectContent>
             </Select>
-            <Select value={filters.fleet} onValueChange={value => handleFilterChange('fleet', value)}>
-                <SelectTrigger className="w-[160px] h-9">
-                    <SelectValue placeholder="Filtrar por flota" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all-fleets">Todas</SelectItem>
-                    {fleetNames.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                </SelectContent>
-            </Select>
+            {role !== 'Fleet Supervisor' && (
+              <Select value={filters.fleet} onValueChange={value => handleFilterChange('fleet', value)}>
+                  <SelectTrigger className="w-[160px] h-9">
+                      <SelectValue placeholder="Filtrar por flota" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all-fleets">Todas</SelectItem>
+                      {fleetNames.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                  </SelectContent>
+              </Select>
+            )}
         </div>
       </CardHeader>
       <CardContent>
