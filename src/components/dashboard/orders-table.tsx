@@ -9,7 +9,8 @@ import {
   PlusCircle,
   MoreHorizontal,
   Download,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Trash2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -44,6 +45,7 @@ import {
 import { mockOrders, drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
+import { DeleteOrderDialog } from "./delete-order-dialog"
 import { useRole } from "@/contexts/role-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
@@ -61,6 +63,7 @@ export function OrdersTable() {
   const { brands, fleets } = useData();
   const [orders, setOrders] = React.useState<Order[]>(mockOrders);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   
   const [filters, setFilters] = React.useState({
@@ -117,6 +120,17 @@ export function OrdersTable() {
       setSelectedOrder(null);
   };
   
+  const handleDeleteOrder = () => {
+    if (!selectedOrder) return;
+    setOrders(prev => prev.filter(o => o.id !== selectedOrder.id));
+    toast({
+      title: "Orden Eliminada",
+      description: `La orden ${selectedOrder.orderNumber} ha sido eliminada.`,
+    });
+    setIsDeleteDialogOpen(false);
+    setSelectedOrder(null);
+  };
+
   const handleExport = () => {
     if (filteredOrders.length === 0) {
       toast({
@@ -160,6 +174,11 @@ export function OrdersTable() {
   const openEditDialog = (order: Order) => {
     setSelectedOrder(order);
     setIsCreateDialogOpen(true);
+  };
+  
+  const openDeleteDialog = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDeleteDialogOpen(true);
   };
 
   const closeCreateDialog = () => {
@@ -347,6 +366,11 @@ export function OrdersTable() {
                        <DropdownMenuItem onClick={() => openEditDialog(order)}>
                         Editar
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(order)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -363,6 +387,13 @@ export function OrdersTable() {
         onSave={selectedOrder ? handleUpdateOrder : handleAddOrder}
         existingOrders={orders}
         order={selectedOrder}
+    />
+
+    <DeleteOrderDialog
+        isOpen={isDeleteDialogOpen}
+        setIsOpen={setIsDeleteDialogOpen}
+        onConfirm={handleDeleteOrder}
+        orderNumber={selectedOrder?.orderNumber}
     />
     
     </TooltipProvider>
