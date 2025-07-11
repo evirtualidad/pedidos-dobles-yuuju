@@ -14,7 +14,6 @@ import { DeleteFleetDialog } from "@/components/admin/delete-fleet-dialog";
 import type { Fleet } from "@/lib/types";
 import { fleets as mockFleets } from "@/lib/data";
 
-// Initialize fleets from mock data for now
 const initialFleets: Fleet[] = mockFleets.map((name, index) => ({ id: (index + 1).toString(), name }));
 
 export default function AdminFleetsPage() {
