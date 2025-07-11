@@ -1,7 +1,7 @@
 
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck, Users, Award, PackageSearch } from "lucide-react";
+import { Truck, Users, Award, Tag } from "lucide-react";
 import { useRole } from "@/contexts/role-context";
 import { Order } from "@/lib/types";
 
@@ -32,8 +32,16 @@ export function StatsCards({ orders }: StatsCardsProps) {
         topDriver = { name: topDriverName, count: driverCounts[topDriverName] };
     }
     
-    const totalQuantity = orders.reduce((sum, order) => sum + order.quantity, 0);
-    const averageItemsPerOrder = totalOrders > 0 ? (totalQuantity / totalOrders).toFixed(2) : '0.00';
+    const brandCounts = orders.reduce<Record<string, number>>((acc, order) => {
+        acc[order.brand] = (acc[order.brand] || 0) + 1;
+        return acc;
+    }, {});
+
+    let topBrand = { name: 'N/A', count: 0 };
+    if (Object.keys(brandCounts).length > 0) {
+        const topBrandName = Object.keys(brandCounts).reduce((a, b) => brandCounts[a] > brandCounts[b] ? a : b);
+        topBrand = { name: topBrandName, count: brandCounts[topBrandName] };
+    }
 
 
     return (
@@ -70,12 +78,12 @@ export function StatsCards({ orders }: StatsCardsProps) {
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Promedio por Pedido</CardTitle>
-                    <PackageSearch className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Top Marca</CardTitle>
+                    <Tag className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{averageItemsPerOrder}</div>
-                    <p className="text-xs text-muted-foreground">Promedio de artículos por orden</p>
+                    <div className="text-2xl font-bold">{topBrand.name}</div>
+                    <p className="text-xs text-muted-foreground">{topBrand.count} órdenes registradas</p>
                 </CardContent>
             </Card>
         </>
