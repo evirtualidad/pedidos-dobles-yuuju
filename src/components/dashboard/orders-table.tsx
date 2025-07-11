@@ -2,7 +2,6 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import { format } from "date-fns"
 import Papa from "papaparse"
 import {
@@ -11,6 +10,7 @@ import {
   Download,
   Calendar as CalendarIcon,
   Trash2,
+  View,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -46,6 +46,7 @@ import { mockOrders, drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
 import { DeleteOrderDialog } from "./delete-order-dialog"
+import { ViewOrderDialog } from "./view-order-dialog"
 import { useRole } from "@/contexts/role-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
@@ -64,6 +65,7 @@ export function OrdersTable() {
   const [orders, setOrders] = React.useState<Order[]>(mockOrders);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   
   const [filters, setFilters] = React.useState({
@@ -78,7 +80,6 @@ export function OrdersTable() {
   const fleetNames = fleets.map(f => f.name);
 
   const handleFilterChange = (filterName: keyof typeof filters, value: string) => {
-    // If the "all" option is selected, reset the specific filter
     if (value.startsWith('all-')) {
       setFilters(prev => ({ ...prev, [filterName]: '' }));
     } else {
@@ -87,7 +88,6 @@ export function OrdersTable() {
   };
 
   const filteredOrders = React.useMemo(() => {
-    // Start with all orders, then filter based on role
     let roleFilteredOrders = orders;
     if (role === 'Fleet Supervisor' && user.fleet) {
         roleFilteredOrders = orders.filter(order => order.fleet === user.fleet);
@@ -154,7 +154,6 @@ export function OrdersTable() {
     }));
     
     const csv = Papa.unparse(dataToExport, { delimiter: ';' });
-    // Add BOM for Excel compatibility
     const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -170,6 +169,11 @@ export function OrdersTable() {
         description: `${filteredOrders.length} órdenes han sido exportadas a ordenes.csv`,
     });
   }
+  
+  const openViewDialog = (order: Order) => {
+    setSelectedOrder(order);
+    setIsViewDialogOpen(true);
+  };
 
   const openEditDialog = (order: Order) => {
     setSelectedOrder(order);
@@ -361,8 +365,9 @@ export function OrdersTable() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/orders/${order.id}`}>Ver Detalles</Link>
+                      <DropdownMenuItem onClick={() => openViewDialog(order)}>
+                        <View className="mr-2 h-4 w-4" />
+                        Ver Detalles
                       </DropdownMenuItem>
                       {canEditOrDelete && (
                         <>
@@ -399,6 +404,12 @@ export function OrdersTable() {
         setIsOpen={setIsDeleteDialogOpen}
         onConfirm={handleDeleteOrder}
         orderNumber={selectedOrder?.orderNumber}
+    />
+
+    <ViewOrderDialog
+      isOpen={isViewDialogOpen}
+      setIsOpen={setIsViewDialogOpen}
+      order={selectedOrder}
     />
     
     </TooltipProvider>
