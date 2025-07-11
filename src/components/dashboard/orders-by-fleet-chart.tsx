@@ -25,7 +25,8 @@ const chartConfig = {
     label: "Órdenes",
   },
   ...fleets.reduce((acc, fleet, index) => {
-    acc[fleet] = {
+    const key = fleet.replace(/\s+/g, ''); // Remove spaces for valid key
+    acc[key] = {
       label: fleet,
       color: `hsl(var(--chart-${index + 1}))`,
     };
@@ -37,11 +38,15 @@ export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
     const { role } = useRole();
 
     const chartData = React.useMemo(() => {
-        const fleetCounts = fleets.map(fleet => ({
-            name: fleet,
-            total: orders.filter(order => order.fleet === fleet).length,
-            fill: `var(--color-${fleet})`,
-        }));
+        const fleetCounts = fleets.map(fleet => {
+            const key = fleet.replace(/\s+/g, ''); // Remove spaces
+            return {
+                name: fleet,
+                key,
+                total: orders.filter(order => order.fleet === fleet).length,
+                fill: `var(--color-${key})`,
+            }
+        });
         return fleetCounts.filter(f => f.total > 0);
     }, [orders]);
 

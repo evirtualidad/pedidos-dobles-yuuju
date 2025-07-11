@@ -5,13 +5,6 @@ import * as React from "react"
 import { Pie, PieChart } from "recharts"
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -32,7 +25,8 @@ const chartConfig = {
     label: "Órdenes",
   },
   ...brands.reduce((acc, brand, index) => {
-    acc[brand] = {
+    const key = brand.replace(/\s+/g, ''); // Remove spaces for valid key
+    acc[key] = {
       label: brand,
       color: `hsl(var(--chart-${index + 1}))`,
     };
@@ -44,11 +38,15 @@ export function OrdersByBrandChart({ orders }: OrdersByBrandChartProps) {
     const { role } = useRole();
 
     const chartData = React.useMemo(() => {
-        const brandCounts = brands.map(brand => ({
-            name: brand,
-            total: orders.filter(order => order.brand === brand).length,
-            fill: `var(--color-${brand})`,
-        }));
+        const brandCounts = brands.map(brand => {
+            const key = brand.replace(/\s+/g, ''); // Remove spaces
+            return {
+                name: brand,
+                key,
+                total: orders.filter(order => order.brand === brand).length,
+                fill: `var(--color-${key})`,
+            }
+        });
         return brandCounts.filter(b => b.total > 0);
     }, [orders]);
 
