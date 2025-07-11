@@ -61,7 +61,7 @@ import { useData } from "@/contexts/data-context"
 export function OrdersTable() {
   const { role, user } = useRole()
   const { toast } = useToast();
-  const { brands, fleets } = useData();
+  const { brands, fleets, orderTypes } = useData();
   const [orders, setOrders] = React.useState<Order[]>(mockOrders);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isCancelDialogOpen, setIsCancelDialogOpen] = React.useState(false);
@@ -203,6 +203,7 @@ export function OrdersTable() {
   };
 
   const canAddOrder = role === 'Admin' || role === 'Data Entry';
+  const isAdminView = role === 'Admin';
 
   return (
     <TooltipProvider>
@@ -315,8 +316,14 @@ export function OrdersTable() {
               <TableHead>Flota</TableHead>
               <TableHead>No. Orden</TableHead>
               <TableHead>Tipo de Pedido</TableHead>
-              <TableHead className="text-center">Cantidad</TableHead>
-              <TableHead>Observaciones</TableHead>
+              {isAdminView ? (
+                <TableHead>Estado</TableHead>
+              ) : (
+                <>
+                  <TableHead className="text-center">Cantidad</TableHead>
+                  <TableHead>Observaciones</TableHead>
+                </>
+              )}
               <TableHead>
                 <span className="sr-only">Acciones</span>
               </TableHead>
@@ -332,21 +339,31 @@ export function OrdersTable() {
                 <TableCell>{order.fleet}</TableCell>
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
                 <TableCell>{order.type}</TableCell>
-                <TableCell className="text-center">{order.quantity}</TableCell>
-                <TableCell>
-                   <Tooltip>
-                        <TooltipTrigger asChild>
-                            <p className="max-w-[150px] truncate">
-                                {order.observations || 'N/A'}
-                            </p>
-                        </TooltipTrigger>
-                        {order.observations && (
-                            <TooltipContent>
-                                <p className="max-w-xs">{order.observations}</p>
-                            </TooltipContent>
-                        )}
-                    </Tooltip>
-                </TableCell>
+                {isAdminView ? (
+                    <TableCell>
+                        <Badge variant={getStatusVariant(order.status)}>
+                            {order.status}
+                        </Badge>
+                    </TableCell>
+                ) : (
+                    <>
+                        <TableCell className="text-center">{order.quantity}</TableCell>
+                        <TableCell>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <p className="max-w-[150px] truncate">
+                                        {order.observations || 'N/A'}
+                                    </p>
+                                </TooltipTrigger>
+                                {order.observations && (
+                                    <TooltipContent>
+                                        <p className="max-w-xs">{order.observations}</p>
+                                    </TooltipContent>
+                                )}
+                            </Tooltip>
+                        </TableCell>
+                    </>
+                )}
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
