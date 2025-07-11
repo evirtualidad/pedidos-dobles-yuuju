@@ -319,7 +319,6 @@ export function OrdersTable() {
               {isAdminView ? (
                 <>
                   <TableHead className="text-center">Cantidad</TableHead>
-                  <TableHead>Estado</TableHead>
                   <TableHead>Ingresado Por</TableHead>
                 </>
               ) : (
@@ -346,11 +345,6 @@ export function OrdersTable() {
                 {isAdminView ? (
                     <>
                         <TableCell className="text-center">{order.quantity}</TableCell>
-                        <TableCell>
-                            <Badge variant={getStatusVariant(order.status)}>
-                                {order.status}
-                            </Badge>
-                        </TableCell>
                         <TableCell>{order.enteredBy}</TableCell>
                     </>
                 ) : (
@@ -423,5 +417,3 @@ export function OrdersTable() {
     </TooltipProvider>
   )
 }
-
-    
