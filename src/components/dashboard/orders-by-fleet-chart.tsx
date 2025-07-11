@@ -2,10 +2,11 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell, Tooltip } from "recharts"
+import { Pie, PieChart, Cell } from "recharts"
 
 import {
   ChartContainer,
+  ChartTooltip,
   ChartTooltipContent,
   ChartConfig,
   ChartLegend,
@@ -60,10 +61,10 @@ export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
   return (
     <ChartContainer
         config={chartConfig}
-        className="mx-auto aspect-square h-[250px]"
+        className="mx-auto aspect-square max-h-[250px]"
     >
         <PieChart>
-        <Tooltip
+        <ChartTooltip
             cursor={false}
             content={<ChartTooltipContent hideLabel />}
         />
