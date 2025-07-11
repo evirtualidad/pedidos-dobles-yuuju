@@ -5,7 +5,7 @@ import { createContext, useContext, useState, ReactNode } from "react";
 // Mock user data based on role
 const users: Record<Role, User> = {
     'Admin': { name: 'Admin User', role: 'Admin'},
-    'Fleet Supervisor': { name: 'Supervisor Sam', role: 'Fleet Supervisor'},
+    'Fleet Supervisor': { name: 'Supervisor Sam', role: 'Fleet Supervisor', fleet: 'Fleet 1'},
     'Data Entry': { name: 'Data Clerk', role: 'Data Entry'}
 }
 

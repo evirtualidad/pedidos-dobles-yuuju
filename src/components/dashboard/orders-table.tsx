@@ -41,7 +41,7 @@ import { Input } from "@/components/ui/input"
 import { ClientDate } from "../client-date"
 
 export function OrdersTable() {
-  const { role } = useRole()
+  const { role, user } = useRole()
   const [orders, setOrders] = React.useState<Order[]>(mockOrders);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   
@@ -62,7 +62,13 @@ export function OrdersTable() {
   };
 
   const filteredOrders = React.useMemo(() => {
-    return orders.filter(order => {
+    // Start with all orders, then filter based on role
+    let roleFilteredOrders = orders;
+    if (role === 'Fleet Supervisor' && user.fleet) {
+        roleFilteredOrders = orders.filter(order => order.fleet === user.fleet);
+    }
+
+    return roleFilteredOrders.filter(order => {
       return (
         (filters.orderNumber === '' || order.orderNumber.toLowerCase().includes(filters.orderNumber.toLowerCase())) &&
         (filters.driver === '' || order.driver === filters.driver) &&
@@ -70,7 +76,7 @@ export function OrdersTable() {
         (filters.fleet === '' || order.fleet === filters.fleet)
       );
     });
-  }, [orders, filters]);
+  }, [orders, filters, role, user.fleet]);
 
 
   const addOrder = (newOrder: Omit<Order, 'id'>) => {

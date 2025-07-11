@@ -26,6 +26,7 @@ export type Role = 'Admin' | 'Fleet Supervisor' | 'Data Entry';
 export type User = {
   name: string;
   role: Role;
+  fleet?: string; // Optional fleet for supervisors
 };
 
 export type Fleet = {
