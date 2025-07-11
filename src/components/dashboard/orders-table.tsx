@@ -12,6 +12,10 @@ import {
   Trash2,
   View,
   Edit,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,6 +24,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from "@/components/ui/card"
 import {
   DropdownMenu,
@@ -76,6 +81,11 @@ export function OrdersTable() {
     fleet: '',
   });
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+  
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const brandNames = brands.map(b => b.name);
   const fleetNames = fleets.map(f => f.name);
@@ -86,7 +96,13 @@ export function OrdersTable() {
     } else {
       setFilters(prev => ({ ...prev, [filterName]: value }));
     }
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
   };
+  
+  const handleDateChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }
 
   const filteredOrders = React.useMemo(() => {
     let roleFilteredOrders = orders;
@@ -109,6 +125,14 @@ export function OrdersTable() {
       );
     }).sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [orders, filters, role, user.fleet, dateRange]);
+  
+  const pageCount = Math.ceil(filteredOrders.length / pagination.pageSize);
+
+  const paginatedOrders = React.useMemo(() => {
+    const start = pagination.pageIndex * pagination.pageSize;
+    const end = start + pagination.pageSize;
+    return filteredOrders.slice(start, end);
+  }, [filteredOrders, pagination]);
 
   const handleAddOrder = (newOrder: Omit<Order, 'id'>) => {
     addOrder(newOrder);
@@ -279,7 +303,7 @@ export function OrdersTable() {
                   mode="range"
                   defaultMonth={dateRange?.from}
                   selected={dateRange}
-                  onSelect={setDateRange}
+                  onSelect={handleDateChange}
                   numberOfMonths={2}
                 />
               </PopoverContent>
@@ -342,7 +366,7 @@ export function OrdersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredOrders.map((order) => (
+            {paginatedOrders.map((order) => (
               <TableRow key={order.id}>
                 <TableCell>
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
@@ -411,6 +435,79 @@ export function OrdersTable() {
           </TableBody>
         </Table>
       </CardContent>
+      <CardFooter>
+        <div className="flex items-center justify-between w-full">
+            <div className="text-sm text-muted-foreground">
+                {filteredOrders.length} orden(es) en total.
+            </div>
+            <div className="flex items-center space-x-6 lg:space-x-8">
+                <div className="flex items-center space-x-2">
+                    <p className="text-sm font-medium">Filas por página</p>
+                    <Select
+                        value={`${pagination.pageSize}`}
+                        onValueChange={(value) => {
+                            setPagination({
+                                pageIndex: 0,
+                                pageSize: Number(value),
+                            })
+                        }}
+                    >
+                        <SelectTrigger className="h-8 w-[70px]">
+                            <SelectValue placeholder={pagination.pageSize} />
+                        </SelectTrigger>
+                        <SelectContent side="top">
+                            {[10, 20, 30, 40, 50].map((pageSize) => (
+                                <SelectItem key={pageSize} value={`${pageSize}`}>
+                                    {pageSize}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                    Página {pagination.pageIndex + 1} de {pageCount}
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Button
+                        variant="outline"
+                        className="hidden h-8 w-8 p-0 lg:flex"
+                        onClick={() => setPagination(prev => ({...prev, pageIndex: 0}))}
+                        disabled={pagination.pageIndex === 0}
+                    >
+                        <span className="sr-only">Ir a la primera página</span>
+                        <ChevronsLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setPagination(prev => ({...prev, pageIndex: prev.pageIndex - 1}))}
+                        disabled={pagination.pageIndex === 0}
+                    >
+                        <span className="sr-only">Ir a la página anterior</span>
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setPagination(prev => ({...prev, pageIndex: prev.pageIndex + 1}))}
+                        disabled={pagination.pageIndex >= pageCount - 1}
+                    >
+                        <span className="sr-only">Ir a la página siguiente</span>
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="hidden h-8 w-8 p-0 lg:flex"
+                        onClick={() => setPagination(prev => ({...prev, pageIndex: pageCount - 1}))}
+                        disabled={pagination.pageIndex >= pageCount - 1}
+                    >
+                        <span className="sr-only">Ir a la última página</span>
+                        <ChevronsRight className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+        </div>
+      </CardFooter>
     </Card>
 
     <CreateOrderDialog
@@ -437,3 +534,5 @@ export function OrdersTable() {
     </TooltipProvider>
   )
 }
+
+    
