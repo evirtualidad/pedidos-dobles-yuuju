@@ -11,6 +11,7 @@ import {
   Calendar as CalendarIcon,
   Trash2,
   View,
+  Edit,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -372,6 +373,7 @@ export function OrdersTable() {
                       {canEditOrDelete && (
                         <>
                           <DropdownMenuItem onClick={() => openEditDialog(order)}>
+                            <Edit className="mr-2 h-4 w-4" />
                             Editar
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
