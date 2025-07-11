@@ -7,7 +7,6 @@ import {
   MoreHorizontal,
   Download
 } from "lucide-react"
-import { format, parseISO } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,6 +37,7 @@ import { CreateOrderDialog } from "./create-order-dialog"
 import { useRole } from "@/contexts/role-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { ClientDate } from "../client-date"
 
 export function OrdersTable() {
   const { role } = useRole()
@@ -149,7 +149,7 @@ export function OrdersTable() {
                 <TableCell className="hidden md:table-cell">{order.type}</TableCell>
                 <TableCell className="hidden md:table-cell">{order.fleet}</TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {format(parseISO(order.date.toISOString()), 'MM/dd/yyyy')}
+                  <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
