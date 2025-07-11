@@ -169,7 +169,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                         control={form.control}
                         name="date"
                         render={({ field }) => (
-                            <FormItem className="flex flex-col">
+                            <FormItem>
                             <FormLabel>Fecha de Ingreso</FormLabel>
                             <Popover>
                                 <PopoverTrigger asChild>
