@@ -37,6 +37,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { mockOrders, drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
@@ -199,7 +205,7 @@ export function OrdersTable() {
   const canAddOrder = role === 'Admin' || role === 'Data Entry';
 
   return (
-    <>
+    <TooltipProvider>
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -309,7 +315,8 @@ export function OrdersTable() {
               <TableHead>Flota</TableHead>
               <TableHead>No. Orden</TableHead>
               <TableHead>Tipo de Pedido</TableHead>
-              <TableHead>Creado por</TableHead>
+              <TableHead className="text-center">Cantidad</TableHead>
+              <TableHead>Observaciones</TableHead>
               <TableHead>
                 <span className="sr-only">Acciones</span>
               </TableHead>
@@ -325,7 +332,21 @@ export function OrdersTable() {
                 <TableCell>{order.fleet}</TableCell>
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
                 <TableCell>{order.type}</TableCell>
-                <TableCell>{order.enteredBy}</TableCell>
+                <TableCell className="text-center">{order.quantity}</TableCell>
+                <TableCell>
+                   <Tooltip>
+                        <TooltipTrigger asChild>
+                            <p className="max-w-[150px] truncate">
+                                {order.observations || 'N/A'}
+                            </p>
+                        </TooltipTrigger>
+                        {order.observations && (
+                            <TooltipContent>
+                                <p className="max-w-xs">{order.observations}</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
+                </TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -374,6 +395,6 @@ export function OrdersTable() {
         onConfirm={handleCancelOrder}
         orderNumber={selectedOrder?.orderNumber}
     />
-    </>
+    </TooltipProvider>
   )
 }
