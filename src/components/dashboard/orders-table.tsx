@@ -43,6 +43,29 @@ export function OrdersTable() {
   const { role } = useRole()
   const [orders, setOrders] = React.useState<Order[]>(mockOrders);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  
+  const [filters, setFilters] = React.useState({
+    orderNumber: '',
+    driver: '',
+    brand: '',
+    fleet: '',
+  });
+
+  const handleFilterChange = (filterName: keyof typeof filters, value: string) => {
+    setFilters(prev => ({ ...prev, [filterName]: value }));
+  };
+
+  const filteredOrders = React.useMemo(() => {
+    return orders.filter(order => {
+      return (
+        (filters.orderNumber === '' || order.orderNumber.toLowerCase().includes(filters.orderNumber.toLowerCase())) &&
+        (filters.driver === '' || order.driver === filters.driver) &&
+        (filters.brand === '' || order.brand === filters.brand) &&
+        (filters.fleet === '' || order.fleet === filters.fleet)
+      );
+    });
+  }, [orders, filters]);
+
 
   const addOrder = (newOrder: Omit<Order, 'id'>) => {
     const orderWithId = { ...newOrder, id: (orders.length + 1).toString() };
@@ -86,28 +109,36 @@ export function OrdersTable() {
             </div>
         </div>
         <div className="mt-4 flex items-center gap-2 flex-wrap">
-            <Input placeholder="Filtrar por No. Orden..." className="max-w-xs h-9"/>
-            <Select>
+            <Input 
+                placeholder="Filtrar por No. Orden..." 
+                className="max-w-xs h-9"
+                value={filters.orderNumber}
+                onChange={e => handleFilterChange('orderNumber', e.target.value)}
+            />
+            <Select value={filters.driver} onValueChange={value => handleFilterChange('driver', value)}>
                 <SelectTrigger className="w-[180px] h-9">
                     <SelectValue placeholder="Filtrar por motorista" />
                 </SelectTrigger>
                 <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
                     {drivers.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                 </SelectContent>
             </Select>
-            <Select>
+            <Select value={filters.brand} onValueChange={value => handleFilterChange('brand', value)}>
                 <SelectTrigger className="w-[160px] h-9">
                     <SelectValue placeholder="Filtrar por marca" />
                 </SelectTrigger>
                 <SelectContent>
+                    <SelectItem value="">Todas</SelectItem>
                     {brands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                 </SelectContent>
             </Select>
-            <Select>
+            <Select value={filters.fleet} onValueChange={value => handleFilterChange('fleet', value)}>
                 <SelectTrigger className="w-[160px] h-9">
                     <SelectValue placeholder="Filtrar por flota" />
                 </SelectTrigger>
                 <SelectContent>
+                    <SelectItem value="">Todas</SelectItem>
                     {fleets.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                 </SelectContent>
             </Select>
@@ -130,7 +161,7 @@ export function OrdersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
                 <TableCell>{order.driver}</TableCell>
