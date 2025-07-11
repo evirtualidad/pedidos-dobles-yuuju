@@ -169,7 +169,6 @@ export function OrdersTable() {
       'Cantidad': o.quantity,
       'Ingresado Por': o.enteredBy,
       'Observaciones': o.observations,
-      'Resumen IA': o.summary,
     }));
     
     const csv = Papa.unparse(dataToExport, { delimiter: ';' });
@@ -334,7 +333,7 @@ export function OrdersTable() {
               ) : (
                 <>
                   <TableHead className="text-center">Cantidad</TableHead>
-                  <TableHead>Resumen IA</TableHead>
+                  <TableHead>Observaciones</TableHead>
                 </>
               )}
               <TableHead>
@@ -365,12 +364,12 @@ export function OrdersTable() {
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <p className="max-w-[150px] truncate">
-                                        {order.summary || 'N/A'}
+                                        {order.observations || 'N/A'}
                                     </p>
                                 </TooltipTrigger>
-                                {order.summary && (
+                                {order.observations && (
                                     <TooltipContent>
-                                        <p className="max-w-xs">{order.summary}</p>
+                                        <p className="max-w-xs">{order.observations}</p>
                                     </TooltipContent>
                                 )}
                             </Tooltip>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Header } from '@/components/header';
@@ -86,17 +85,6 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                     {order.observations || 'Sin observaciones.'}
                                 </p>
                             </div>
-                            {order.summary && (
-                                <>
-                                <Separator />
-                                <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Resumen (IA)</p>
-                                    <p className="mt-1 text-sm">
-                                        {order.summary}
-                                    </p>
-                                </div>
-                                </>
-                            )}
                              <Separator />
                              <div>
                                 <p className="text-sm font-medium text-muted-foreground">Ingresado por</p>
