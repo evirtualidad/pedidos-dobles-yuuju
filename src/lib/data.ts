@@ -2,11 +2,11 @@ import type { Order, AuditLog } from './types';
 
 // Mock data representing what might come from Firebase
 export const mockOrders: Order[] = [
-  { id: '1', orderNumber: 'ORD1001', date: new Date('2023-10-01'), driver: 'John Doe', type: 'Larga Distancia', brand: 'Brand A', fleet: 'RAPI RAPI', status: 'Completed', quantity: 1, observations: 'N/A', enteredBy: 'Admin User' },
-  { id: '2', orderNumber: 'ORD1002', date: new Date('2023-10-02'), driver: 'Jane Smith', type: 'Apoyo Compañero', brand: 'Brand B', fleet: 'ZF EXPRESS', status: 'Completed', quantity: 2, observations: 'Fragile items', enteredBy: 'Data Clerk' },
-  { id: '3', orderNumber: 'ORD1003', date: new Date('2023-10-03'), driver: 'Mike Johnson', type: 'Pedido VIP', brand: 'Brand A', fleet: 'SPEEDY', status: 'Pending', quantity: 1, observations: '', enteredBy: 'Data Clerk' },
-  { id: '4', orderNumber: 'ORD1004', date: new Date('2023-10-04'), driver: 'Emily Davis', type: 'Arriba de 1000', brand: 'Brand C', fleet: 'VUELA YA', status: 'Pending', quantity: 3, observations: 'Customer will call', enteredBy: 'Admin User' },
-  { id: '5', orderNumber: 'ORD1005', date: new Date('2023-10-05'), driver: 'John Doe', type: 'Escuelas', brand: 'Brand B', fleet: 'FLOTA PROPIA', status: 'Cancelled', quantity: 1, observations: 'Wrong address', enteredBy: 'Supervisor Sam' },
+  { id: '1', orderNumber: 'ORD1001', date: new Date('2023-10-01'), driver: 'John Doe', type: 'Larga Distancia', brand: 'BK', fleet: 'RAPI RAPI', status: 'Completed', quantity: 1, observations: 'N/A', enteredBy: 'Admin User' },
+  { id: '2', orderNumber: 'ORD1002', date: new Date('2023-10-02'), driver: 'Jane Smith', type: 'Apoyo Compañero', brand: 'LC', fleet: 'ZF EXPRESS', status: 'Completed', quantity: 2, observations: 'Fragile items', enteredBy: 'Data Clerk' },
+  { id: '3', orderNumber: 'ORD1003', date: new Date('2023-10-03'), driver: 'Mike Johnson', type: 'Pedido VIP', brand: 'PP', fleet: 'SPEEDY', status: 'Pending', quantity: 1, observations: '', enteredBy: 'Data Clerk' },
+  { id: '4', orderNumber: 'ORD1004', date: new Date('2023-10-04'), driver: 'Emily Davis', type: 'Arriba de 1000', brand: 'CC', fleet: 'VUELA YA', status: 'Pending', quantity: 3, observations: 'Customer will call', enteredBy: 'Admin User' },
+  { id: '5', orderNumber: 'ORD1005', date: new Date('2023-10-05'), driver: 'John Doe', type: 'Escuelas', brand: 'DD', fleet: 'FLOTA PROPIA', status: 'Cancelled', quantity: 1, observations: 'Wrong address', enteredBy: 'Supervisor Sam' },
 ];
 
 export const mockAuditLogs: AuditLog[] = [
@@ -20,7 +20,8 @@ export const mockAuditLogs: AuditLog[] = [
 ];
 
 export const drivers = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Emily Davis', 'Chris Lee'];
-export const brands = ['Brand A', 'Brand B', 'Brand C'];
+export const brands = ['BK', 'LC', 'PP', 'CC', 'DD', 'CL', 'IJW', 'BR', 'CK', 'PC', 'SW'];
 export const fleets = ['RAPI RAPI', 'ZF EXPRESS', 'SPEEDY', 'VUELA YA', 'FLOTA PROPIA'];
 export const orderTypes = ['Larga Distancia', 'Apoyo Compañero', 'Pedido VIP', 'Arriba de 1000', 'Escuelas', 'Entrega Especial'];
+
 
