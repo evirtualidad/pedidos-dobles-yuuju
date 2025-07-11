@@ -9,6 +9,7 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartConfig,
 } from "@/components/ui/chart"
 import { useRole } from "@/contexts/role-context"
 import type { Order } from "@/lib/types"
@@ -16,6 +17,13 @@ import type { Order } from "@/lib/types"
 interface OrdersChartProps {
     orders: Order[];
 }
+
+const chartConfig = {
+  total: {
+    label: "Órdenes",
+    color: "hsl(var(--chart-1))",
+  },
+} satisfies ChartConfig
 
 export function OrdersChart({ orders }: OrdersChartProps) {
     const { role } = useRole();
@@ -48,7 +56,7 @@ export function OrdersChart({ orders }: OrdersChartProps) {
     }
     
     return (
-        <ChartContainer config={{}} className="min-h-[300px] w-full">
+        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
             <BarChart accessibilityLayer data={chartData}>
                 <CartesianGrid vertical={false} />
                 <XAxis
@@ -67,7 +75,7 @@ export function OrdersChart({ orders }: OrdersChartProps) {
                     cursor={false}
                     content={<ChartTooltipContent hideLabel />}
                 />
-                <Bar dataKey="total" fill="var(--color-primary)" radius={8} />
+                <Bar dataKey="total" fill="var(--color-total)" radius={8} />
             </BarChart>
         </ChartContainer>
     )

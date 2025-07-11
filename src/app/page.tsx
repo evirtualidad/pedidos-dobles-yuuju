@@ -10,6 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
 import { mockOrders } from "@/lib/data";
 import type { Order } from "@/lib/types";
+import { OrdersByBrandChart } from "@/components/dashboard/orders-by-brand-chart";
+import { OrdersByFleetChart } from "@/components/dashboard/orders-by-fleet-chart";
+import { OrdersByStatusChart } from "@/components/dashboard/orders-by-status-chart";
 
 export interface DashboardFiltersState {
   dateRange: { from?: Date; to?: Date };
@@ -54,11 +57,41 @@ export default function DashboardPage() {
             <StatsCards orders={filteredOrders} />
           </div>
 
-          <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
-            <Card className="col-span-2">
+          <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+             <Card>
+                <CardHeader>
+                    <CardTitle>Órdenes por Marca</CardTitle>
+                    <CardDescription>Distribución de órdenes por marca.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <OrdersByBrandChart orders={filteredOrders} />
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Órdenes por Flota</CardTitle>
+                    <CardDescription>Distribución de órdenes por flota.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <OrdersByFleetChart orders={filteredOrders} />
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Órdenes por Estado</CardTitle>
+                    <CardDescription>Distribución de órdenes por estado.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <OrdersByStatusChart orders={filteredOrders} />
+                </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 md:gap-8 lg:grid-cols-1">
+            <Card>
                  <CardHeader>
-                    <CardTitle>Resumen de Órdenes</CardTitle>
-                    <CardDescription>Un resumen de las órdenes filtradas.</CardDescription>
+                    <CardTitle>Resumen Mensual de Órdenes</CardTitle>
+                    <CardDescription>Un resumen de las órdenes filtradas por mes.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <OrdersChart orders={filteredOrders} />
