@@ -187,6 +187,7 @@ export function OrdersTable() {
   }
 
   const canAddOrder = role === 'Admin' || role === 'Data Entry';
+  const canEditOrDelete = role === 'Admin' || role === 'Data Entry';
   const isAdminView = role === 'Admin';
 
   return (
@@ -363,14 +364,18 @@ export function OrdersTable() {
                       <DropdownMenuItem asChild>
                         <Link href={`/orders/${order.id}`}>Ver Detalles</Link>
                       </DropdownMenuItem>
-                       <DropdownMenuItem onClick={() => openEditDialog(order)}>
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(order)}>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar
-                      </DropdownMenuItem>
+                      {canEditOrDelete && (
+                        <>
+                          <DropdownMenuItem onClick={() => openEditDialog(order)}>
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(order)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
