@@ -12,7 +12,6 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from "@/components/ui/chart"
-import { useRole } from "@/contexts/role-context"
 import type { Order } from "@/lib/types"
 
 interface OrdersChartProps {
@@ -27,8 +26,6 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function OrdersChart({ orders }: OrdersChartProps) {
-    const { role } = useRole();
-
     const chartData = React.useMemo(() => {
         const twelveWeeksAgo = subWeeks(new Date(), 11);
         const today = new Date();

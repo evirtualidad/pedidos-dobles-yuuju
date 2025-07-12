@@ -2,7 +2,6 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Truck, Users, Award, Tag } from "lucide-react";
-import { useRole } from "@/contexts/role-context";
 import { Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -13,8 +12,6 @@ interface StatsCardsProps {
 const cardClasses = "border-t-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg hover:border-primary";
 
 export function StatsCards({ orders }: StatsCardsProps) {
-    const { role } = useRole();
-
     const totalOrders = orders.length;
 
     const uniqueDrivers = new Set(orders.map(order => order.driver));

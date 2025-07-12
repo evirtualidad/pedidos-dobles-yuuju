@@ -33,7 +33,6 @@ import { Calendar } from "@/components/ui/calendar"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Order } from "@/lib/types"
-import { useRole } from "@/contexts/role-context"
 import { useData } from "@/contexts/data-context"
 
 const orderSchema = z.object({
@@ -57,8 +56,7 @@ type CreateOrderDialogProps = {
 
 export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, order }: CreateOrderDialogProps) {
   const { toast } = useToast();
-  const { user } = useRole();
-  const { brands, fleets, orderTypes, orders } = useData();
+  const { user, brands, fleets, orderTypes, orders } = useData();
 
   const brandNames = brands.map(b => b.name);
   const fleetNames = fleets.map(f => f.name);
@@ -129,7 +127,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
     }
     
     // This is a new order, add the user who entered it
-    const saveData = order 
+    const saveData = order || !user
         ? values 
         : { ...values, enteredBy: user.name };
 

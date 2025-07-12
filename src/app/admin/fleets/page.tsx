@@ -2,7 +2,6 @@
 "use client";
 
 import * as React from "react";
-import { RoleProvider } from "@/contexts/role-context";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,60 +63,58 @@ export default function AdminFleetsPage() {
     }
 
     return (
-        <RoleProvider>
-            <AdminLayout>
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <CardTitle>Flotas</CardTitle>
-                                <CardDescription>
-                                    Gestiona las flotas de vehículos.
-                                </CardDescription>
-                            </div>
-                            <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
-                                <PlusCircle className="h-3.5 w-3.5" />
-                                Añadir Flota
-                            </Button>
+        <AdminLayout>
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Flotas</CardTitle>
+                            <CardDescription>
+                                Gestiona las flotas de vehículos.
+                            </CardDescription>
                         </div>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Nombre de la Flota</TableHead>
-                                    <TableHead>
-                                        <span className="sr-only">Acciones</span>
-                                    </TableHead>
+                        <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            Añadir Flota
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nombre de la Flota</TableHead>
+                                <TableHead>
+                                    <span className="sr-only">Acciones</span>
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {fleets.map(fleet => (
+                                <TableRow key={fleet.id}>
+                                    <TableCell>{fleet.name}</TableCell>
+                                    <TableCell>
+                                        <div className="flex justify-end">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                        <span className="sr-only">Toggle menu</span>
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => openEditDialog(fleet)}>Editar</DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(fleet)}>Eliminar</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {fleets.map(fleet => (
-                                    <TableRow key={fleet.id}>
-                                        <TableCell>{fleet.name}</TableCell>
-                                        <TableCell>
-                                            <div className="flex justify-end">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                            <span className="sr-only">Toggle menu</span>
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => openEditDialog(fleet)}>Editar</DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(fleet)}>Eliminar</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </AdminLayout>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
 
             <CreateFleetDialog
                 isOpen={isCreateDialogOpen}
@@ -132,6 +129,6 @@ export default function AdminFleetsPage() {
                 onConfirm={handleDeleteFleet}
                 fleetName={selectedFleet?.name}
             />
-        </RoleProvider>
+        </AdminLayout>
     )
 }

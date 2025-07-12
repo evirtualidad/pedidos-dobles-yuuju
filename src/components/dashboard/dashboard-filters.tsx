@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { useData } from "@/contexts/data-context";
 import type { DashboardFiltersState } from "@/app/page";
-import { useRole } from "@/contexts/role-context";
 
 interface DashboardFiltersProps {
   filters: DashboardFiltersState;
@@ -20,8 +19,7 @@ interface DashboardFiltersProps {
 }
 
 export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersProps) {
-  const { brands, fleets, orderTypes } = useData();
-  const { role } = useRole();
+  const { brands, fleets, orderTypes, role } = useData();
   
   const brandNames = brands.map(b => b.name);
   const fleetNames = fleets.map(f => f.name);

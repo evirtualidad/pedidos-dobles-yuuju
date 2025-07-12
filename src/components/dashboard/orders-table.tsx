@@ -31,7 +31,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import {
   Table,
@@ -51,7 +50,6 @@ import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
 import { DeleteOrderDialog } from "./delete-order-dialog"
 import { ViewOrderDialog } from "./view-order-dialog"
-import { useRole } from "@/contexts/role-context"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { ClientDate } from "../client-date"
@@ -64,9 +62,7 @@ import { useData } from "@/contexts/data-context"
 import Link from "next/link"
 
 export function OrdersTable() {
-  const { role, user } = useRole()
-  const { toast } = useToast();
-  const { brands, fleets, orders, addOrder, updateOrder, deleteOrder, addAuditLog } = useData();
+  const { role, user, toast, brands, fleets, orders, addOrder, updateOrder, deleteOrder, addAuditLog } = useData();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -108,7 +104,7 @@ export function OrdersTable() {
 
   const filteredOrders = React.useMemo(() => {
     let roleFilteredOrders = orders;
-    if (role === 'Fleet Supervisor' && user.fleet) {
+    if (role === 'Fleet Supervisor' && user?.fleet) {
         roleFilteredOrders = orders.filter(order => order.fleet === user.fleet);
     }
 
@@ -132,7 +128,7 @@ export function OrdersTable() {
         (filters.fleet === '' || order.fleet === filters.fleet)
       );
     });
-  }, [orders, filters, role, user.fleet, dateRange]);
+  }, [orders, filters, role, user?.fleet, dateRange]);
   
   const pageCount = Math.ceil(filteredOrders.length / pagination.pageSize);
 
@@ -143,6 +139,7 @@ export function OrdersTable() {
   }, [filteredOrders, pagination]);
 
   const handleAddOrder = async (newOrder: Omit<Order, 'id'>) => {
+    if(!user || !role) return;
     await addOrder(newOrder);
     await addAuditLog({
         user: user.name,
@@ -153,7 +150,7 @@ export function OrdersTable() {
   };
   
   const handleUpdateOrder = async (updatedOrderData: Omit<Order, 'id'>) => {
-      if(!selectedOrder) return;
+      if(!selectedOrder || !user || !role) return;
       await updateOrder(selectedOrder.id, updatedOrderData);
       await addAuditLog({
           user: user.name,
@@ -165,7 +162,7 @@ export function OrdersTable() {
   };
   
   const handleDeleteOrder = async () => {
-    if (!selectedOrder) return;
+    if (!selectedOrder || !user || !role) return;
     const orderToDelete = selectedOrder;
     await deleteOrder(orderToDelete.id);
     await addAuditLog({

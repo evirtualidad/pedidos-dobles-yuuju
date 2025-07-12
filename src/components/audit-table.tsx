@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useRole } from "@/contexts/role-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Terminal } from "lucide-react";
@@ -9,8 +8,7 @@ import { ClientDate } from "./client-date";
 import { useData } from "@/contexts/data-context";
 
 export function AuditTable() {
-    const { role } = useRole();
-    const { auditLogs } = useData();
+    const { role, auditLogs } = useData();
 
     if (role !== 'Admin') {
         return (

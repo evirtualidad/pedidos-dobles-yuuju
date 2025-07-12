@@ -2,7 +2,6 @@
 "use client";
 
 import * as React from "react";
-import { RoleProvider } from "@/contexts/role-context";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,60 +63,58 @@ export default function AdminOrderTypesPage() {
     }
 
     return (
-        <RoleProvider>
-            <AdminLayout>
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <CardTitle>Tipos de Pedido</CardTitle>
-                                <CardDescription>
-                                    Gestiona los tipos de pedido.
-                                </CardDescription>
-                            </div>
-                            <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
-                                <PlusCircle className="h-3.5 w-3.5" />
-                                Añadir Tipo
-                            </Button>
+        <AdminLayout>
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Tipos de Pedido</CardTitle>
+                            <CardDescription>
+                                Gestiona los tipos de pedido.
+                            </CardDescription>
                         </div>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Nombre del Tipo de Pedido</TableHead>
-                                    <TableHead>
-                                        <span className="sr-only">Acciones</span>
-                                    </TableHead>
+                        <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            Añadir Tipo
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nombre del Tipo de Pedido</TableHead>
+                                <TableHead>
+                                    <span className="sr-only">Acciones</span>
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {orderTypes.map(orderType => (
+                                <TableRow key={orderType.id}>
+                                    <TableCell>{orderType.name}</TableCell>
+                                    <TableCell>
+                                        <div className="flex justify-end">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                        <span className="sr-only">Toggle menu</span>
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => openEditDialog(orderType)}>Editar</DropdownMenuItem>
+                                                    <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(orderType)}>Eliminar</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {orderTypes.map(orderType => (
-                                    <TableRow key={orderType.id}>
-                                        <TableCell>{orderType.name}</TableCell>
-                                        <TableCell>
-                                            <div className="flex justify-end">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                            <span className="sr-only">Toggle menu</span>
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => openEditDialog(orderType)}>Editar</DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(orderType)}>Eliminar</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </AdminLayout>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
 
             <CreateOrderTypeDialog
                 isOpen={isCreateDialogOpen}
@@ -132,6 +129,6 @@ export default function AdminOrderTypesPage() {
                 onConfirm={handleDeleteOrderType}
                 orderTypeName={selectedOrderType?.name}
             />
-        </RoleProvider>
+        </AdminLayout>
     )
 }

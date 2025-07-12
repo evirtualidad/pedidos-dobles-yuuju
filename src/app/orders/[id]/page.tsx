@@ -1,7 +1,7 @@
+
 "use client";
 
 import { Header } from '@/components/header';
-import { RoleProvider } from '@/contexts/role-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useData } from '@/contexts/data-context';
 import { notFound } from 'next/navigation';
@@ -25,7 +25,6 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
   }
 
   return (
-    <RoleProvider>
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <Header />
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -96,6 +95,5 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
             </div>
         </main>
       </div>
-    </RoleProvider>
   );
 }
