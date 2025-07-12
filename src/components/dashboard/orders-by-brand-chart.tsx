@@ -2,103 +2,78 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   ChartConfig,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart"
 import type { Order } from "@/lib/types"
-import { useRole } from "@/contexts/role-context"
 import { useData } from "@/contexts/data-context"
 
 interface OrdersByBrandChartProps {
   orders: Order[]
 }
 
-const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-  if (!percent || percent === 0) {
-    return null;
-  }
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text
-      x={x}
-      y={y}
-      fill="white"
-      textAnchor="middle"
-      dominantBaseline="central"
-      className="text-xs font-bold"
-    >
-      {`${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-};
-
 export function OrdersByBrandChart({ orders }: OrdersByBrandChartProps) {
-    const { role } = useRole();
     const { brands } = useData();
 
     const chartConfig = React.useMemo(() => {
         const config: ChartConfig = {
-            orders: {
+            total: {
                 label: "Órdenes",
+                color: "hsl(var(--chart-1))",
             },
         };
-        brands.forEach((brand, index) => {
-            const key = brand.name.replace(/\s+/g, '');
-            config[key] = {
-                label: brand.name,
-                color: `hsl(var(--chart-${(index % 5) + 1}))`,
-            };
-        });
         return config;
-    }, [brands]);
+    }, []);
 
 
     const chartData = React.useMemo(() => {
-        const brandCounts = brands.map(brand => {
-            const key = brand.name.replace(/\s+/g, '');
+        const brandCounts: { name: string; total: number }[] = brands.map(brand => {
             return {
                 name: brand.name,
-                key,
-                total: orders.filter(order => order.brand === brand.name).length,
-                fill: `var(--color-${key})`,
+                total: orders.filter(order => order.brand === brand.name).reduce((sum, order) => sum + order.quantity, 0),
             }
         });
-        return brandCounts.filter(b => b.total > 0);
+        // Sort by total descending and return only brands with orders
+        return brandCounts.filter(b => b.total > 0).sort((a, b) => a.total - b.total);
     }, [orders, brands]);
 
   return (
     <ChartContainer
         config={chartConfig}
-        className="mx-auto aspect-square max-h-[250px]"
+        className="w-full h-[250px]"
     >
-        <PieChart>
-        <ChartTooltip
+        <BarChart
+          accessibilityLayer
+          data={chartData}
+          layout="vertical"
+          margin={{
+            left: 10,
+            right: 10,
+          }}
+        >
+          <CartesianGrid horizontal={false} />
+          <YAxis
+            dataKey="name"
+            type="category"
+            tickLine={false}
+            tickMargin={10}
+            axisLine={false}
+            className="text-xs"
+            interval={0}
+          />
+          <XAxis dataKey="total" type="number" hide />
+          <ChartTooltip
             cursor={false}
             content={<ChartTooltipContent hideLabel />}
-        />
-        <Pie
-            data={chartData}
-            dataKey="total"
-            nameKey="name"
-            labelLine={false}
-            label={renderCustomizedLabel}
-        />
-        <ChartLegend
-            content={<ChartLegendContent nameKey="name" />}
-            className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-end"
-        />
-        </PieChart>
+          />
+          <Bar dataKey="total" fill="var(--color-total)" radius={4}>
+          </Bar>
+        </BarChart>
     </ChartContainer>
   )
 }

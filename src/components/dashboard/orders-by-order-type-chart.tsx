@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart } from "recharts"
+import { Pie, PieChart, Cell } from "recharts"
 
 import {
   ChartContainer,
@@ -13,15 +13,36 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart"
 import type { Order } from "@/lib/types"
-import { useRole } from "@/contexts/role-context"
 import { useData } from "@/contexts/data-context"
 
 interface OrdersByOrderTypeChartProps {
   orders: Order[]
 }
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  if (!percent || percent === 0) {
+    return null;
+  }
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="white"
+      textAnchor="middle"
+      dominantBaseline="central"
+      className="text-xs font-bold"
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
 export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) {
-    const { role } = useRole();
     const { orderTypes } = useData();
 
     const chartConfig = React.useMemo(() => {
@@ -47,7 +68,7 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
             return {
                 name: orderType.name,
                 key,
-                total: orders.filter(order => order.type === orderType.name).length,
+                total: orders.filter(order => order.type === orderType.name).reduce((sum, order) => sum + order.quantity, 0),
                 fill: `var(--color-${key})`,
             }
         });
@@ -68,10 +89,16 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
             data={chartData}
             dataKey="total"
             nameKey="name"
-        />
+            labelLine={false}
+            label={renderCustomizedLabel}
+        >
+           {chartData.map((entry) => (
+              <Cell key={`cell-${entry.key}`} fill={chartConfig[entry.key]?.color} />
+            ))}
+        </Pie>
         <ChartLegend
             content={<ChartLegendContent nameKey="name" />}
-            className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+            className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-end"
         />
         </PieChart>
     </ChartContainer>
