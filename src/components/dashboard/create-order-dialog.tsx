@@ -92,7 +92,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
         });
       }
     }
-  }, [isOpen, order]);
+  }, [isOpen, order, form, brandNames, orderTypeNames]);
 
 
   function onSubmit(values: z.infer<typeof orderSchema>) {
@@ -207,14 +207,16 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                       render={({ field }) => (
                            <FormItem>
                               <FormLabel>Nombre Motorista</FormLabel>
-                                <div className="flex gap-2">
-                                     <FormControl>
-                                        <Input disabled placeholder="Seleccione un motorista" {...field} />
-                                    </FormControl>
-                                    <Button type="button" variant="outline" onClick={() => setIsSelectDriverOpen(true)}>
-                                        <Search className="h-4 w-4" />
+                               <FormControl>
+                                    <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full justify-start text-left font-normal"
+                                    onClick={() => setIsSelectDriverOpen(true)}
+                                    >
+                                    {field.value ? field.value : "Seleccionar Motorista"}
                                     </Button>
-                                </div>
+                                </FormControl>
                               <FormMessage />
                           </FormItem>
                       )}
