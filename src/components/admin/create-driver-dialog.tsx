@@ -36,9 +36,10 @@ type CreateDriverDialogProps = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   onSave: (driver: Omit<Driver, 'id'>) => void;
+  initialName?: string;
 };
 
-export function CreateDriverDialog({ isOpen, setIsOpen, onSave }: CreateDriverDialogProps) {
+export function CreateDriverDialog({ isOpen, setIsOpen, onSave, initialName }: CreateDriverDialogProps) {
   const { fleets } = useData();
   const fleetNames = React.useMemo(() => fleets.map(f => f.name), [fleets]);
 
@@ -53,11 +54,11 @@ export function CreateDriverDialog({ isOpen, setIsOpen, onSave }: CreateDriverDi
   React.useEffect(() => {
     if (isOpen) {
         form.reset({
-            name: "",
+            name: initialName || "",
             fleet: fleetNames.length > 0 ? fleetNames[0] : "",
         });
     }
-  }, [isOpen, form, fleetNames]);
+  }, [isOpen, form, fleetNames, initialName]);
 
   const onSubmit = (values: z.infer<typeof driverSchema>) => {
     onSave(values);
@@ -124,4 +125,3 @@ export function CreateDriverDialog({ isOpen, setIsOpen, onSave }: CreateDriverDi
     </Dialog>
   );
 }
-

@@ -34,6 +34,7 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Order, Driver } from "@/lib/types"
 import { useData } from "@/contexts/data-context"
+import { DriverCombobox } from "./driver-combobox"
 
 const orderSchema = z.object({
   orderNumber: z.string().min(1, "No. de pedido es requerido"),
@@ -67,17 +68,14 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   });
 
   React.useEffect(() => {
-    // Only reset the form when the dialog opens
     if (isOpen) {
       if (order) {
-        // Editing an existing order
         form.reset({
           ...order,
           date: new Date(order.date),
           observations: order.observations || "",
         });
       } else {
-        // Creating a new order
         form.reset({
           orderNumber: `ORD-${Date.now() % 10000}`,
           driver: "",
@@ -133,7 +131,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
         form.setValue("fleet", selectedDriver.fleet, { shouldValidate: true });
     }
   };
-
+  
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
@@ -202,22 +200,12 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                     control={form.control}
                     name="driver"
                     render={({ field }) => (
-                        <FormItem>
+                         <FormItem className="flex flex-col">
                             <FormLabel>Nombre Motorista</FormLabel>
-                            <Select onValueChange={handleDriverSelect} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Seleccione un motorista" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                {drivers.map(driver => (
-                                    <SelectItem key={driver.id} value={driver.name}>
-                                    {driver.name}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
+                                <DriverCombobox 
+                                    initialDriverName={field.value}
+                                    onSelect={handleDriverSelect}
+                                />
                             <FormMessage />
                         </FormItem>
                     )}
