@@ -39,6 +39,12 @@ export function SelectDriverDialog({
   const [searchTerm, setSearchTerm] = React.useState("")
   const [isCreateDriverOpen, setIsCreateDriverOpen] = React.useState(false)
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setSearchTerm("");
+    }
+  }, [isOpen]);
+
   const filteredDrivers = React.useMemo(() => {
     return drivers.filter(driver =>
       driver.name.toLowerCase().includes(searchTerm.toLowerCase())
