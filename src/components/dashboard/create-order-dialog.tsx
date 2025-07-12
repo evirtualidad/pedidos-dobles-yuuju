@@ -56,12 +56,12 @@ type CreateOrderDialogProps = {
 
 export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, order }: CreateOrderDialogProps) {
   const { toast } = useToast();
-  const { user, brands, fleets, orderTypes, orders } = useData();
+  const { brands, fleets, orderTypes, orders } = useData();
 
-  const brandNames = brands.map(b => b.name);
-  const fleetNames = fleets.map(f => f.name);
-  const orderTypeNames = orderTypes.map(ot => ot.name);
-  const drivers = [...new Set(orders.map(o => o.driver))];
+  const brandNames = React.useMemo(() => brands.map(b => b.name), [brands]);
+  const fleetNames = React.useMemo(() => fleets.map(f => f.name), [fleets]);
+  const orderTypeNames = React.useMemo(() => orderTypes.map(ot => ot.name), [orderTypes]);
+  const drivers = React.useMemo(() => [...new Set(orders.map(o => o.driver))], [orders]);
 
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
@@ -77,34 +77,32 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
       observations: "",
     },
   });
-  
-  const setDefaultValues = React.useCallback(() => {
-    form.reset({
-      orderNumber: `ORD-${Date.now() % 10000}`,
-      driver: drivers.length > 0 ? drivers[0] : "",
-      date: new Date(),
-      brand: brandNames.length > 0 ? brandNames[0] : "",
-      fleet: fleetNames.length > 0 ? fleetNames[0] : "",
-      type: orderTypeNames.length > 0 ? orderTypeNames[0] : "",
-      quantity: 1,
-      observations: "",
-    });
-  }, [form, drivers, brandNames, fleetNames, orderTypeNames]);
-
 
   React.useEffect(() => {
-    if(isOpen) {
+    if (isOpen) {
       if (order) {
+        // Editing an existing order
         form.reset({
           ...order,
           date: new Date(order.date),
           observations: order.observations || "",
         });
       } else {
-        setDefaultValues();
+        // Creating a new order
+        form.reset({
+          orderNumber: `ORD-${Date.now() % 10000}`,
+          driver: drivers.length > 0 ? drivers[0] : "",
+          date: new Date(),
+          brand: brandNames.length > 0 ? brandNames[0] : "",
+          fleet: fleetNames.length > 0 ? fleetNames[0] : "",
+          type: orderTypeNames.length > 0 ? orderTypeNames[0] : "",
+          quantity: 1,
+          observations: "",
+        });
       }
     }
-  }, [order, form, isOpen, setDefaultValues]);
+  }, [isOpen, order, form, drivers, brandNames, fleetNames, orderTypeNames]);
+
 
   function onSubmit(values: z.infer<typeof orderSchema>) {
     if (!order) {
