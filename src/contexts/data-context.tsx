@@ -15,7 +15,8 @@ import {
     Timestamp,
     query,
     orderBy,
-    writeBatch
+    writeBatch,
+    getDocs
 } from "firebase/firestore";
 import { 
     onAuthStateChanged, 
@@ -117,19 +118,51 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const [drivers, setDrivers] = React.useState<Driver[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [initialAuthCheck, setInitialAuthCheck] = React.useState(false);
+    
+    const migrationExecutedRef = React.useRef(false);
+
+    // One-time migration function for existing order types
+    const migrateOrderTypes = async () => {
+        if (migrationExecutedRef.current) return;
+        migrationExecutedRef.current = true;
+        
+        console.log("Checking for order types migration...");
+        const orderTypesCollection = collection(db, "orderTypes");
+        const snapshot = await getDocs(orderTypesCollection);
+        const typesToMigrate = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() } as OrderType))
+            .filter(type => type.position === undefined);
+
+        if (typesToMigrate.length > 0) {
+            console.log(`Migrating ${typesToMigrate.length} order types...`);
+            const batch = writeBatch(db);
+            typesToMigrate.forEach((type, index) => {
+                const docRef = doc(db, 'orderTypes', type.id);
+                batch.update(docRef, { position: index });
+            });
+            await batch.commit();
+            console.log("Migration complete.");
+        } else {
+            console.log("No order types to migrate.");
+        }
+    };
+
 
     React.useEffect(() => {
-        // We start listeners regardless of user state to get `users` list for the login page logic
+        migrateOrderTypes();
+
         const qOrderTypes = query(collection(db, "orderTypes"), orderBy("position"));
         
         const unsubscribers = [
             onSnapshot(collection(db, "brands"), (snapshot) => setBrands(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Brand)))),
             onSnapshot(collection(db, "fleets"), (snapshot) => setFleets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fleet)))),
-            onSnapshot(qOrderTypes, (snapshot) => setOrderTypes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderType)))),
+            onSnapshot(qOrderTypes, (snapshot) => {
+                const types = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderType));
+                setOrderTypes(types);
+            }),
             onSnapshot(collection(db, "users"), (snapshot) => {
                 setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserWithId)))
-                // This check is important for the login page logic to create the first admin
-                 if (!initialAuthCheck) {
+                if (!initialAuthCheck) {
                     setInitialAuthCheck(true);
                 }
             }),
@@ -148,12 +181,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                     setUser(userData);
                     setRole(userData.role);
                 } else {
-                    // This case handles the very first user or a user created in Auth but not Firestore yet.
                     console.log("User profile not found in Firestore, creating one...");
                     const newUserProfile: Omit<UserWithId, 'id'> = {
                         name: firebaseUser.displayName || firebaseUser.email || 'New User',
                         email: firebaseUser.email!,
-                        role: 'Admin', // First user is Admin
+                        role: 'Admin',
                     };
                     await setDoc(userDocRef, newUserProfile);
                     setUser({id: firebaseUser.uid, ...newUserProfile});
@@ -193,7 +225,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             await signInWithEmailAndPassword(auth, email, pass);
             return true;
         } catch (error) {
-            // Error is handled in the UI with a toast, so we just return false.
             return false;
         }
     }
@@ -222,7 +253,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             return firebaseUser;
         } catch (error) {
             console.error("Create user failed:", error);
-            throw error; // Re-throw to be caught in the UI
+            throw error;
         }
     }
 
@@ -234,8 +265,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await addDoc(collection(db, 'auditLogs'), newLog);
     }
     
-    // Generic CRUD Functions for Firestore
-    const addItem = async <T>(collectionName: string, item: T) => {
+    const addItem = async <T extends object>(collectionName: string, item: T) => {
         const docRef = await addDoc(collection(db, collectionName), item);
         return docRef;
     };
@@ -248,19 +278,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await deleteDoc(doc(db, collectionName, id));
     };
 
-    // Brand Management
     const addBrand = (name: string) => addDoc(collection(db, 'brands'), { name }).then(() => {});
     const updateBrand = (id: string, name: string) => updateItem('brands', id, { name });
     const deleteBrand = (id: string) => deleteItem('brands', id);
 
-    // Fleet Management
     const addFleet = (name: string) => addDoc(collection(db, 'fleets'), { name }).then(() => {});
     const updateFleet = (id: string, name: string) => updateItem('fleets', id, { name });
     const deleteFleet = (id: string) => deleteItem('fleets', id);
 
-    // Order Type Management
     const addOrderType = (name: string) => {
-        const maxPosition = orderTypes.reduce((max, type) => Math.max(max, type.position), -1);
+        const maxPosition = orderTypes.reduce((max, type) => Math.max(max, type.position ?? -1), -1);
         const newOrderType = { name, position: maxPosition + 1 };
         return addDoc(collection(db, 'orderTypes'), newOrderType).then(() => {});
     };
@@ -275,11 +302,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await batch.commit();
     };
 
-    // User Management
     const updateUser = (id: string, userData: Omit<UserWithId, 'id'>) => updateItem('users', id, userData);
     const deleteUser = (id: string) => deleteItem('users', id);
 
-    // Order Management
     const addOrder = async (orderData: Omit<Order, 'id' | 'enteredBy'>, newDriverData?: Omit<Driver, 'id'>) => {
         if (!user) throw new Error("No user logged in");
         let finalOrderData: Omit<Order, 'id'>;
@@ -311,7 +336,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
     const deleteOrder = (id: string) => deleteItem('orders', id);
 
-    // Driver Management
     const addDriver = async (driverData: Omit<Driver, 'id'>) => {
         try {
             const docRef = await addItem('drivers', driverData);
