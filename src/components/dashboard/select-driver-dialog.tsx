@@ -104,10 +104,10 @@ export function SelectDriverDialog({
                   <TableRow 
                     key={driver.id} 
                     onClick={() => onSelectDriver(driver)}
-                    className="cursor-pointer hover:bg-muted"
+                    className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
                   >
                     <TableCell>{driver.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="text-muted-foreground group-hover:text-accent-foreground">
                       {driver.fleet}
                     </TableCell>
                   </TableRow>
