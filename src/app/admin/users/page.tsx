@@ -28,7 +28,7 @@ export default function AdminUsersPage() {
             // Create user in Firebase Auth
             // For simplicity, we'll use a default password. 
             // In a real app, you'd have a more secure way of setting this.
-            await createUserWithEmailAndPassword(auth, user.email, "password");
+            const userCredential = await createUserWithEmailAndPassword(auth, user.email, "password");
 
             // Add user profile to Firestore
             await addUser(user);
