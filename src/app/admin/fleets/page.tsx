@@ -22,10 +22,6 @@ export default function AdminFleetsPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedFleet, setSelectedFleet] = React.useState<Fleet | null>(null);
 
-    const handleAddFleet = async (name: string) => {
-        await addFleet(name);
-    };
-
     const handleUpdateFleet = async (id: string, name: string) => {
         await updateFleet(id, name);
         setSelectedFleet(null);
@@ -126,7 +122,7 @@ export default function AdminFleetsPage() {
             <CreateFleetDialog
                 isOpen={isCreateDialogOpen}
                 setIsOpen={closeCreateDialog}
-                onSave={selectedFleet ? (name) => handleUpdateFleet(selectedFleet.id, name) : handleAddFleet}
+                onSave={selectedFleet ? (name) => handleUpdateFleet(selectedFleet.id, name) : addFleet}
                 fleet={selectedFleet}
             />
 

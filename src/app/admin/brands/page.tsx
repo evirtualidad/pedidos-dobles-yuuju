@@ -22,10 +22,6 @@ export default function AdminBrandsPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedBrand, setSelectedBrand] = React.useState<Brand | null>(null);
 
-    const handleAddBrand = async (name: string) => {
-        await addBrand(name);
-    };
-
     const handleUpdateBrand = async (id: string, name: string) => {
         await updateBrand(id, name);
         setSelectedBrand(null);
@@ -126,7 +122,7 @@ export default function AdminBrandsPage() {
             <CreateBrandDialog
                 isOpen={isCreateDialogOpen}
                 setIsOpen={closeCreateDialog}
-                onSave={selectedBrand ? (name) => handleUpdateBrand(selectedBrand.id, name) : handleAddBrand}
+                onSave={selectedBrand ? (name) => handleUpdateBrand(selectedBrand.id, name) : addBrand}
                 brand={selectedBrand}
             />
 
