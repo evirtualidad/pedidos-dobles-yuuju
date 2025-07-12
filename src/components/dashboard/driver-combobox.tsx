@@ -32,18 +32,16 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
   const { drivers, addDriver: addDriverToContext } = useData()
   const [open, setOpen] = React.useState(false)
   const [value, setValue] = React.useState(initialDriverName || "")
-  const [search, setSearch] = React.useState(initialDriverName || "");
+  const [search, setSearch] = React.useState(initialDriverName || "")
 
-  const [isCreateDriverOpen, setIsCreateDriverOpen] = React.useState(false);
-  const [newDriverName, setNewDriverName] = React.useState("");
+  const [isCreateDriverOpen, setIsCreateDriverOpen] = React.useState(false)
 
   React.useEffect(() => {
     setValue(initialDriverName || "");
     setSearch(initialDriverName || "");
   }, [initialDriverName]);
 
-  const handleSelect = (currentValue: string) => {
-    const driverName = currentValue === value ? "" : currentValue;
+  const handleSelect = (driverName: string) => {
     setValue(driverName);
     setSearch(driverName);
     onSelect(driverName);
@@ -57,7 +55,6 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
   };
 
   const openCreateDriverDialog = () => {
-    setNewDriverName(search);
     setIsCreateDriverOpen(true);
     setOpen(false); // Close combobox popover
   }
@@ -89,7 +86,7 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
             />
              <CommandList>
                 <CommandEmpty>
-                    <Button variant="ghost" className="w-full" onClick={openCreateDriverDialog}>
+                    <Button variant="ghost" className="w-full text-left justify-start p-2" onClick={openCreateDriverDialog}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Crear "{search}"
                     </Button>
@@ -99,7 +96,7 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
                     <CommandItem
                         key={driver.id}
                         value={driver.name}
-                        onSelect={handleSelect}
+                        onSelect={() => handleSelect(driver.name)}
                     >
                     <Check
                         className={cn(
@@ -119,7 +116,7 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
         isOpen={isCreateDriverOpen}
         setIsOpen={setIsCreateDriverOpen}
         onSave={handleCreateDriver}
-        initialName={newDriverName}
+        initialName={search}
       />
     </>
   )
