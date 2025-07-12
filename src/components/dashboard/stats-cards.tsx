@@ -4,10 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Truck, Users, Award, Tag } from "lucide-react";
 import { useRole } from "@/contexts/role-context";
 import { Order } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface StatsCardsProps {
     orders: Order[];
 }
+
+const cardClasses = "border-t-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-lg hover:border-primary";
 
 export function StatsCards({ orders }: StatsCardsProps) {
     const { role } = useRole();
@@ -42,7 +45,7 @@ export function StatsCards({ orders }: StatsCardsProps) {
 
     return (
         <>
-            <Card>
+            <Card className={cn(cardClasses, "border-t-chart-1")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Órdenes</CardTitle>
                     <Truck className="h-4 w-4 text-muted-foreground" />
@@ -52,7 +55,7 @@ export function StatsCards({ orders }: StatsCardsProps) {
                     <p className="text-xs text-muted-foreground">Total de órdenes filtradas</p>
                 </CardContent>
             </Card>
-            <Card>
+            <Card className={cn(cardClasses, "border-t-chart-2")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Motoristas Activos</CardTitle>
                     <Users className="h-4 w-4 text-muted-foreground" />
@@ -62,7 +65,7 @@ export function StatsCards({ orders }: StatsCardsProps) {
                     <p className="text-xs text-muted-foreground">Motoristas únicos en el período</p>
                 </CardContent>
             </Card>
-            <Card>
+            <Card className={cn(cardClasses, "border-t-chart-3")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Top Motorista</CardTitle>
                     <Award className="h-4 w-4 text-muted-foreground" />
@@ -72,7 +75,7 @@ export function StatsCards({ orders }: StatsCardsProps) {
                     <p className="text-xs text-muted-foreground">{topDriver.count} órdenes completadas</p>
                 </CardContent>
             </Card>
-            <Card>
+            <Card className={cn(cardClasses, "border-t-chart-4")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Top Marca</CardTitle>
                     <Tag className="h-4 w-4 text-muted-foreground" />
