@@ -31,30 +31,28 @@ interface DriverComboboxProps {
 export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxProps) {
   const { drivers } = useData()
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState(initialDriverName || "")
+  const [selectedValue, setSelectedValue] = React.useState(initialDriverName || "")
+  const [searchValue, setSearchValue] = React.useState("")
   const [isCreateDriverOpen, setIsCreateDriverOpen] = React.useState(false)
 
   React.useEffect(() => {
-    // Sync value with initialDriverName when it changes (e.g., when editing an order)
-    if (initialDriverName) {
-      setValue(initialDriverName)
-    }
+    setSelectedValue(initialDriverName || "")
   }, [initialDriverName])
 
-  const handleSelect = (currentValue: string) => {
-    const selectedDriver = drivers.find(driver => driver.name === currentValue);
-    setValue(currentValue)
+  const handleSelect = (driverName: string) => {
+    const selectedDriver = drivers.find(driver => driver.name === driverName)
+    if (selectedDriver) {
+      setSelectedValue(selectedDriver.name)
+      onSelect(selectedDriver)
+    }
     setOpen(false)
-    onSelect(selectedDriver || null)
   }
   
   const handleDriverCreated = (newDriver: Driver) => {
-    setValue(newDriver.name);
-    setOpen(false);
+    setSelectedValue(newDriver.name);
     onSelect(newDriver);
+    setIsCreateDriverOpen(false);
   }
-
-  const currentDriver = drivers.find(driver => driver.name === value)
 
   return (
     <>
@@ -66,16 +64,16 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
             aria-expanded={open}
             className="w-full justify-between"
           >
-            {currentDriver ? currentDriver.name : "Seleccione un motorista..."}
+            {selectedValue || "Seleccione un motorista..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-          <Command>
+          <Command shouldFilter={false}>
             <CommandInput 
                 placeholder="Buscar motorista..."
-                value={value}
-                onValueChange={setValue}
+                value={searchValue}
+                onValueChange={setSearchValue}
             />
             <CommandList>
                 <CommandEmpty>
@@ -83,12 +81,14 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
                         <p className="text-sm text-center text-muted-foreground mb-2">No se encontró el motorista.</p>
                         <Button className="w-full" size="sm" onClick={() => { setOpen(false); setIsCreateDriverOpen(true); }}>
                             <UserPlus className="mr-2 h-4 w-4" />
-                            Crear: "{value}"
+                            Crear: "{searchValue}"
                         </Button>
                     </div>
                 </CommandEmpty>
                 <CommandGroup>
-                {drivers.map((driver) => (
+                {drivers
+                  .filter(driver => driver.name.toLowerCase().includes(searchValue.toLowerCase()))
+                  .map((driver) => (
                     <CommandItem
                         key={driver.id}
                         value={driver.name}
@@ -97,7 +97,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
                     <Check
                         className={cn(
                         "mr-2 h-4 w-4",
-                        value === driver.name ? "opacity-100" : "opacity-0"
+                        selectedValue === driver.name ? "opacity-100" : "opacity-0"
                         )}
                     />
                     {driver.name}
@@ -111,7 +111,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
       <CreateDriverDialog
         isOpen={isCreateDriverOpen}
         setIsOpen={setIsCreateDriverOpen}
-        initialName={value}
+        initialName={searchValue}
         onDriverCreated={handleDriverCreated}
       />
     </>
