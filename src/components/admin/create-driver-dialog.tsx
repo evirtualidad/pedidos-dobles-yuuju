@@ -55,10 +55,10 @@ export function CreateDriverDialog({ isOpen, setIsOpen, onSave, initialName }: C
     if (isOpen) {
         form.reset({
             name: initialName || "",
-            fleet: fleetNames.length > 0 ? fleetNames[0] : "",
+            fleet: "",
         });
     }
-  }, [isOpen, form, fleetNames, initialName]);
+  }, [isOpen, form, initialName]);
 
   const onSubmit = (values: z.infer<typeof driverSchema>) => {
     onSave(values);
