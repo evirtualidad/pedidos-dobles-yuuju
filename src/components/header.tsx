@@ -100,7 +100,7 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://placehold.co/40x40" alt={user?.name || ''} data-ai-hint="person portrait" />
+                    <AvatarImage src="" alt={user?.name || ''} />
                     <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -130,3 +130,5 @@ export function Header() {
     </header>
   );
 }
+
+    

@@ -15,6 +15,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Eye,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,7 +50,6 @@ import {
 import { Order, Driver } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
 import { DeleteOrderDialog } from "./delete-order-dialog"
-import { ViewOrderDialog } from "./view-order-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { ClientDate } from "../client-date"
@@ -59,14 +59,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { cn } from "@/lib/utils"
 import { Calendar } from "../ui/calendar"
 import { useData } from "@/contexts/data-context"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export function OrdersTable() {
   const { role, user, toast, brands, fleets, orders, addOrder, updateOrder, deleteOrder, addDriver } = useData();
+  const router = useRouter();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   
   const [filters, setFilters] = React.useState({
@@ -87,7 +87,6 @@ export function OrdersTable() {
   const drivers = [...new Set(orders.map(o => o.driver))];
 
   const handleFilterChange = (filterName: keyof typeof filters, value: string) => {
-    // Reset page index when filters change
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
     
     if (value.startsWith('all-')) {
@@ -141,8 +140,6 @@ export function OrdersTable() {
   const handleAddOrder = async (newOrder: Omit<Order, 'id' | 'enteredBy'>, newDriverData?: Omit<Driver, 'id'>) => {
     if(!user) return;
 
-    let finalOrderData = { ...newOrder };
-
     if (newDriverData) {
         const driverId = await addDriver(newDriverData);
         if (!driverId) {
@@ -151,7 +148,7 @@ export function OrdersTable() {
         }
     }
 
-    await addOrder(finalOrderData);
+    await addOrder(newOrder);
   };
   
   const handleUpdateOrder = async (updatedOrderData: Omit<Order, 'id' | 'enteredBy'>) => {
@@ -209,11 +206,6 @@ export function OrdersTable() {
         title: "Exportación Exitosa",
         description: `${filteredOrders.length} órdenes han sido exportadas a ordenes.csv`,
     });
-  }
-
-  const openViewDialog = (order: Order) => {
-    setSelectedOrder(order);
-    setIsViewDialogOpen(true);
   }
 
   const openEditDialog = (order: Order) => {
@@ -368,11 +360,11 @@ export function OrdersTable() {
           <TableBody>
             {paginatedOrders.map((order) => (
               <TableRow key={order.id}>
-                <TableCell className="hidden md:table-cell">
+                <TableCell className="hidden md:table-cell font-medium">
                   <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
                 <TableCell>{order.driver}</TableCell>
-                <TableCell>{order.orderNumber}</TableCell>
+                <TableCell className="font-medium">{order.orderNumber}</TableCell>
                 <TableCell className="hidden sm:table-cell">{order.brand}</TableCell>
                 <TableCell className="hidden lg:table-cell">{order.type}</TableCell>
                 {!isSupervisorView && <TableCell className="hidden md:table-cell">{order.fleet}</TableCell>}
@@ -410,7 +402,10 @@ export function OrdersTable() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => openViewDialog(order)}>Ver Detalles</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push(`/orders/${order.id}`)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver Detalles
+                      </DropdownMenuItem>
                       {canEditOrDelete && (
                         <>
                           <DropdownMenuItem onClick={() => openEditDialog(order)}>
@@ -520,13 +515,9 @@ export function OrdersTable() {
         onConfirm={handleDeleteOrder}
         orderNumber={selectedOrder?.orderNumber}
     />
-
-    <ViewOrderDialog
-        isOpen={isViewDialogOpen}
-        setIsOpen={setIsViewDialogOpen}
-        order={selectedOrder}
-    />
     
     </TooltipProvider>
   )
 }
+
+    
