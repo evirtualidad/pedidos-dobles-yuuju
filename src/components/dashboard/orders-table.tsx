@@ -369,9 +369,7 @@ export function OrdersTable() {
             {paginatedOrders.map((order) => (
               <TableRow key={order.id}>
                 <TableCell className="hidden md:table-cell">
-                  <Link href={`/orders/${order.id}`} className="hover:underline">
-                    <ClientDate date={order.date} formatString="MM/dd/yyyy" />
-                  </Link>
+                  <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                 </TableCell>
                 <TableCell>{order.driver}</TableCell>
                 <TableCell>{order.orderNumber}</TableCell>
