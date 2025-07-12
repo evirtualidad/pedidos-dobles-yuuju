@@ -97,24 +97,18 @@ export function SelectDriverDialog({
                 <TableRow>
                   <TableHead>Nombre del Motorista</TableHead>
                   <TableHead>Flota Asignada</TableHead>
-                  <TableHead className="w-[100px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredDrivers.map(driver => (
-                  <TableRow key={driver.id}>
+                  <TableRow 
+                    key={driver.id} 
+                    onClick={() => onSelectDriver(driver)}
+                    className="cursor-pointer hover:bg-muted"
+                  >
                     <TableCell>{driver.name}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {driver.fleet}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onSelectDriver(driver)}
-                      >
-                        Seleccionar
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
