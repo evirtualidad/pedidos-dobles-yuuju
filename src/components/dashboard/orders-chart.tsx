@@ -54,24 +54,29 @@ export function OrdersChart({ orders }: OrdersChartProps) {
 
     return (
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-            <BarChart accessibilityLayer data={chartData}>
+            <BarChart 
+                accessibilityLayer 
+                data={chartData}
+                margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
+            >
                 <CartesianGrid vertical={false} />
                 <XAxis
                     dataKey="week"
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
-                    className="text-xs"
+                    className="text-[10px] sm:text-xs"
                 />
                  <YAxis 
                     tickLine={false}
                     axisLine={false}
                     tickMargin={10}
-                    allowDecimals={false}
+                    allowDecals={false}
+                    className="text-[10px] sm:text-xs"
                  />
                 <ChartTooltip
                     cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
+                    content={<ChartTooltipContent className="text-xs" hideLabel />}
                 />
                 <Bar dataKey="total" fill="var(--color-total)" radius={8} />
             </BarChart>

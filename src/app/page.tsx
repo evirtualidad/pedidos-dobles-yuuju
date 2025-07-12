@@ -103,7 +103,7 @@ function DashboardPageContent() {
                     <CardTitle>Resumen Semanal de Órdenes</CardTitle>
                     <CardDescription>Un resumen de las órdenes filtradas por semana.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-2 pt-0 sm:p-6 sm:pt-0">
                     <OrdersChart orders={filteredOrders} />
                 </CardContent>
             </Card>
