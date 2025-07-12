@@ -40,7 +40,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
   }, [initialDriverName])
 
   const handleSelect = (driverName: string) => {
-    const selectedDriver = drivers.find(driver => driver.name === driverName)
+    const selectedDriver = drivers.find(driver => driver.name.toLowerCase() === driverName.toLowerCase())
     if (selectedDriver) {
       setSelectedValue(selectedDriver.name)
       onSelect(selectedDriver)
@@ -54,9 +54,16 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
     setIsCreateDriverOpen(false);
   }
 
+  const handleOpenChange = (isOpen: boolean) => {
+      setOpen(isOpen)
+      if (!isOpen) {
+          setSearchValue("")
+      }
+  }
+
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -97,7 +104,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
                     <Check
                         className={cn(
                         "mr-2 h-4 w-4",
-                        selectedValue === driver.name ? "opacity-100" : "opacity-0"
+                        selectedValue.toLowerCase() === driver.name.toLowerCase() ? "opacity-100" : "opacity-0"
                         )}
                     />
                     {driver.name}
