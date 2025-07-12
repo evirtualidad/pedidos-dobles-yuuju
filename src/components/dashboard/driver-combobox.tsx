@@ -13,7 +13,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command"
 import {
   Popover,
@@ -32,31 +31,30 @@ interface DriverComboboxProps {
 export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxProps) {
   const { drivers } = useData()
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
-  const [typedValue, setTypedValue] = React.useState("")
+  const [value, setValue] = React.useState(initialDriverName || "")
   const [isCreateDriverOpen, setIsCreateDriverOpen] = React.useState(false)
 
   React.useEffect(() => {
+    // Sync value with initialDriverName when it changes (e.g., when editing an order)
     if (initialDriverName) {
-      const initialDriver = drivers.find(driver => driver.name.toLowerCase() === initialDriverName.toLowerCase());
-      if (initialDriver) {
-        setValue(initialDriver.name.toLowerCase())
-      }
+      setValue(initialDriverName)
     }
-  }, [initialDriverName, drivers])
+  }, [initialDriverName])
 
   const handleSelect = (currentValue: string) => {
-    const selectedDriver = drivers.find(driver => driver.name.toLowerCase() === currentValue);
+    const selectedDriver = drivers.find(driver => driver.name === currentValue);
     setValue(currentValue)
     setOpen(false)
     onSelect(selectedDriver || null)
   }
   
   const handleDriverCreated = (newDriver: Driver) => {
-    setValue(newDriver.name.toLowerCase());
+    setValue(newDriver.name);
     setOpen(false);
     onSelect(newDriver);
   }
+
+  const currentDriver = drivers.find(driver => driver.name === value)
 
   return (
     <>
@@ -68,9 +66,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
             aria-expanded={open}
             className="w-full justify-between"
           >
-            {value
-              ? drivers.find((driver) => driver.name.toLowerCase() === value)?.name
-              : "Seleccione un motorista..."}
+            {currentDriver ? currentDriver.name : "Seleccione un motorista..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -78,16 +74,16 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
           <Command>
             <CommandInput 
                 placeholder="Buscar motorista..."
-                value={typedValue}
-                onValueChange={setTypedValue}
+                value={value}
+                onValueChange={setValue}
             />
             <CommandList>
                 <CommandEmpty>
                     <div className="p-2">
                         <p className="text-sm text-center text-muted-foreground mb-2">No se encontró el motorista.</p>
-                        <Button className="w-full" size="sm" onClick={() => setIsCreateDriverOpen(true)}>
+                        <Button className="w-full" size="sm" onClick={() => { setOpen(false); setIsCreateDriverOpen(true); }}>
                             <UserPlus className="mr-2 h-4 w-4" />
-                            Crear: "{typedValue}"
+                            Crear: "{value}"
                         </Button>
                     </div>
                 </CommandEmpty>
@@ -96,12 +92,12 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
                     <CommandItem
                         key={driver.id}
                         value={driver.name}
-                        onSelect={(currentValue) => handleSelect(currentValue)}
+                        onSelect={handleSelect}
                     >
                     <Check
                         className={cn(
                         "mr-2 h-4 w-4",
-                        value === driver.name.toLowerCase() ? "opacity-100" : "opacity-0"
+                        value === driver.name ? "opacity-100" : "opacity-0"
                         )}
                     />
                     {driver.name}
@@ -115,7 +111,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
       <CreateDriverDialog
         isOpen={isCreateDriverOpen}
         setIsOpen={setIsCreateDriverOpen}
-        initialName={typedValue}
+        initialName={value}
         onDriverCreated={handleDriverCreated}
       />
     </>
