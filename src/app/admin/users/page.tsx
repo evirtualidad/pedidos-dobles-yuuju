@@ -12,27 +12,68 @@ import { CreateUserDialog } from "@/components/admin/create-user-dialog";
 import { DeleteUserDialog } from "@/components/admin/delete-user-dialog";
 import type { UserWithId } from "@/lib/types";
 import { useData } from "@/contexts/data-context";
+import { auth } from "@/lib/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminUsersPage() {
     const { users, addUser, updateUser, deleteUser, fleets } = useData();
+    const { toast } = useToast();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState<UserWithId | null>(null);
 
     const handleAddUser = async (user: Omit<UserWithId, 'id'>) => {
-        await addUser(user);
+        try {
+            // Create user in Firebase Auth
+            // For simplicity, we'll use a default password. 
+            // In a real app, you'd have a more secure way of setting this.
+            await createUserWithEmailAndPassword(auth, user.email, "password");
+
+            // Add user profile to Firestore
+            await addUser(user);
+
+            toast({
+                title: "Usuario Creado",
+                description: `El usuario "${user.name}" ha sido creado. La contraseña temporal es "password".`,
+            });
+        } catch (error: any) {
+            console.error("Error creating user:", error);
+            if (error.code === 'auth/email-already-in-use') {
+                 toast({
+                    variant: "destructive",
+                    title: "Error al crear usuario",
+                    description: "El correo electrónico ya está en uso por otro usuario.",
+                });
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "Error al crear usuario",
+                    description: "No se pudo crear el usuario. Revisa la consola para más detalles.",
+                });
+            }
+        }
     };
 
     const handleUpdateUser = async (id: string, user: Omit<UserWithId, 'id'>) => {
+        // Note: Updating user email in Firebase Auth is a sensitive operation
+        // and requires re-authentication. For this app, we'll only update the Firestore profile.
         await updateUser(id, user);
         setSelectedUser(null);
     };
 
     const handleDeleteUser = async () => {
         if (selectedUser) {
+            // Deleting a user from Auth is a destructive operation and requires
+            // server-side logic (Admin SDK) to do properly without re-authentication.
+            // For this client-side app, we will only delete from Firestore.
             await deleteUser(selectedUser.id);
             setIsDeleteDialogOpen(false);
             setSelectedUser(null);
+            toast({
+                title: "Usuario Eliminado",
+                description: `El perfil de "${selectedUser.name}" ha sido eliminado de Firestore. La cuenta de autenticación aún puede existir.`,
+            });
         }
     };
 
