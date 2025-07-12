@@ -88,7 +88,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
           date: new Date(),
           brand: "",
           fleet: "",
-          type: orderTypeNames.includes("Larga distancia") ? "Larga distancia" : (orderTypeNames[0] || ""),
+          type: orderTypeNames.includes("Larga distancia") ? "Larga distancia" : "",
           quantity: 1,
           observations: "",
         });
