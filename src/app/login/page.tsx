@@ -146,13 +146,6 @@ export default function LoginPage() {
             </form>
           </Form>
         </CardContent>
-         {!noUsersExist && (
-            <CardFooter>
-                <p className="text-xs text-muted-foreground text-center w-full">
-                    Los nuevos usuarios son creados por un administrador en el panel de Gestión.
-                </p>
-            </CardFooter>
-        )}
       </Card>
     </div>
   );
