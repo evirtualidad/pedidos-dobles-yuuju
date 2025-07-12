@@ -30,12 +30,12 @@ import { useData } from "@/contexts/data-context";
 
 const loginSchema = z.object({
   email: z.string().email("Por favor, ingresa un correo electrónico válido."),
-  password: z.string().min(1, "La contraseña es requerida."),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres."),
 });
 
 export default function LoginPage() {
   const { toast } = useToast();
-  const { login } = useData();
+  const { login, users, createUser } = useData();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -60,6 +60,30 @@ export default function LoginPage() {
     // Redirection is handled by DataContext
     setIsLoading(false);
   };
+  
+  const handleCreateAdmin = async (values: z.infer<typeof loginSchema>) => {
+      setIsLoading(true);
+      try {
+        await createUser(values.email, values.password, 'Admin', 'Admin User');
+        // The onAuthStateChanged listener in DataContext will handle the rest.
+        toast({
+            title: "Cuenta de Admin Creada",
+            description: "Has sido autenticado. Serás redirigido.",
+        });
+      } catch (error: any) {
+          toast({
+                variant: "destructive",
+                title: "Error al crear cuenta",
+                description: error.code === 'auth/email-already-in-use' 
+                    ? "El correo electrónico ya está en uso."
+                    : "No se pudo crear la cuenta de administrador.",
+            });
+      } finally {
+        setIsLoading(false);
+      }
+  }
+  
+  const noUsersExist = users.length === 0;
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40 p-4">
@@ -69,14 +93,14 @@ export default function LoginPage() {
                  <Truck className="h-8 w-8 text-primary" />
                  <h1 className="text-2xl font-bold font-headline">Fleet Command</h1>
             </div>
-          <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
+          <CardTitle className="text-2xl">{noUsersExist ? "Crear Cuenta de Admin" : "Iniciar Sesión"}</CardTitle>
           <CardDescription>
-            Ingresa tu correo y contraseña para acceder al panel.
+            {noUsersExist ? "Ingresa tu correo y contraseña para crear la cuenta principal." : "Ingresa tu correo y contraseña para acceder al panel."}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(noUsersExist ? handleCreateAdmin : onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="email"
@@ -114,16 +138,21 @@ export default function LoginPage() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Ingresando..." : "Iniciar Sesión"}
+                {isLoading 
+                    ? (noUsersExist ? "Creando..." : "Ingresando...") 
+                    : (noUsersExist ? "Crear Cuenta Admin" : "Iniciar Sesión")
+                }
               </Button>
             </form>
           </Form>
         </CardContent>
-        <CardFooter>
-            <p className="text-xs text-muted-foreground text-center w-full">
-                Nota: El primer usuario (administrador) debe ser creado manualmente en la consola de Firebase Authentication por el desarrollador.
-            </p>
-        </CardFooter>
+         {!noUsersExist && (
+            <CardFooter>
+                <p className="text-xs text-muted-foreground text-center w-full">
+                    Los nuevos usuarios son creados por un administrador en el panel de Gestión.
+                </p>
+            </CardFooter>
+        )}
       </Card>
     </div>
   );

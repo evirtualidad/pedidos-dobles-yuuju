@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -21,6 +20,7 @@ import {
     onAuthStateChanged, 
     signInWithEmailAndPassword, 
     signOut,
+    createUserWithEmailAndPassword,
     type User as FirebaseUser
 } from "firebase/auth";
 
@@ -34,6 +34,7 @@ type DataContextType = {
   role: Role | null;
   login: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
+  createUser: (email: string, pass: string, role: Role, name: string, fleet?: string) => Promise<FirebaseUser | null>;
   
   brands: Brand[];
   addBrand: (name: string) => Promise<void>;
@@ -126,18 +127,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                     setRole(userData.role);
                 } else {
                     console.log("User profile not found in Firestore, creating one...");
-                    // First user to sign in becomes an admin
+                    // This case handles the very first user or a user created in Auth but not Firestore yet.
+                    const isFirstUser = users.length === 0;
                     const newUserProfile: Omit<UserWithId, 'id'> = {
                         name: firebaseUser.displayName || firebaseUser.email || 'New User',
                         email: firebaseUser.email!,
-                        role: 'Admin',
+                        role: isFirstUser ? 'Admin' : 'Data Entry', // First user is Admin, others default to Data Entry
                     };
                     await setDoc(userDocRef, newUserProfile);
                     setUser({id: firebaseUser.uid, ...newUserProfile});
                     setRole(newUserProfile.role);
                     toast({
-                        title: "Bienvenido, Admin",
-                        description: "Tu perfil de administrador ha sido creado.",
+                        title: isFirstUser ? "Bienvenido, Admin" : "Bienvenido",
+                        description: "Tu perfil ha sido creado.",
                     });
                 }
 
@@ -154,11 +156,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
         });
         return () => unsubscribeAuth();
-    }, [pathname, router]);
+    }, [pathname, router, users.length]);
 
     // Firestore listeners
     React.useEffect(() => {
-        if (!user) return; // Don't fetch data if no user
+        // We start listeners regardless of user state to get `users` list for the login page logic
         const unsubscribers = [
             onSnapshot(collection(db, "brands"), (snapshot) => setBrands(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Brand)))),
             onSnapshot(collection(db, "fleets"), (snapshot) => setFleets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fleet)))),
@@ -169,7 +171,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             onSnapshot(collection(db, "drivers"), (snapshot) => setDrivers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Driver)))),
         ];
         return () => unsubscribers.forEach(unsub => unsub());
-    }, [user]);
+    }, []);
 
     const login = async (email: string, pass: string) => {
         try {
@@ -186,6 +188,29 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setRole(null);
         router.push('/login');
+    }
+
+    const createUser = async (email: string, pass: string, role: Role, name: string, fleet?: string): Promise<FirebaseUser | null> => {
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+            const firebaseUser = userCredential.user;
+
+            const userProfile: Omit<UserWithId, 'id'> = {
+                name,
+                email,
+                role,
+            };
+            if(role === 'Fleet Supervisor' && fleet) {
+                userProfile.fleet = fleet;
+            }
+            // The onAuthStateChanged listener will create the Firestore doc.
+            // But we can create it here as well to be certain.
+            await setDoc(doc(db, "users", firebaseUser.uid), userProfile);
+            return firebaseUser;
+        } catch (error) {
+            console.error("Create user failed:", error);
+            throw error; // Re-throw to be caught in the UI
+        }
     }
 
     const addAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>) => {
@@ -262,9 +287,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (!user && pathname !== '/login') {
         return <LoadingScreen />;
     }
+    
+    if (user && pathname === '/login') {
+        // This can cause a flicker, handled by useEffect but as a safeguard.
+        return <LoadingScreen />;
+    }
 
     const contextValue: DataContextType = { 
-        user, role, login, logout,
+        user, role, login, logout, createUser,
         brands, addBrand, updateBrand, deleteBrand,
         fleets, addFleet, updateFleet, deleteFleet,
         orderTypes, addOrderType, updateOrderType, deleteOrderType,
