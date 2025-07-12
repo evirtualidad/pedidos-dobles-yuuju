@@ -23,7 +23,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import { useData } from "@/contexts/data-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import type { Driver } from "@/lib/types";
@@ -36,14 +35,11 @@ const driverSchema = z.object({
 type CreateDriverDialogProps = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  initialName?: string;
-  onDriverCreated: (driver: Driver) => void;
+  onSave: (driver: Omit<Driver, 'id'>) => void;
 };
 
-export function CreateDriverDialog({ isOpen, setIsOpen, initialName, onDriverCreated }: CreateDriverDialogProps) {
-  const { toast } = useToast();
-  const { fleets, addDriver, addAuditLog, user, role } = useData();
-
+export function CreateDriverDialog({ isOpen, setIsOpen, onSave }: CreateDriverDialogProps) {
+  const { fleets } = useData();
   const fleetNames = React.useMemo(() => fleets.map(f => f.name), [fleets]);
 
   const form = useForm<z.infer<typeof driverSchema>>({
@@ -57,34 +53,14 @@ export function CreateDriverDialog({ isOpen, setIsOpen, initialName, onDriverCre
   React.useEffect(() => {
     if (isOpen) {
         form.reset({
-            name: initialName || "",
+            name: "",
             fleet: fleetNames.length > 0 ? fleetNames[0] : "",
         });
     }
-  }, [isOpen, initialName, form, fleetNames]);
+  }, [isOpen, form, fleetNames]);
 
-  const onSubmit = async (values: z.infer<typeof driverSchema>) => {
-    const driverId = await addDriver(values);
-    if (driverId && user && role) {
-        toast({
-            title: "Motorista Creado",
-            description: `El motorista "${values.name}" ha sido creado exitosamente.`,
-        });
-        await addAuditLog({
-            user: user.name,
-            role: role,
-            action: 'Created Driver',
-            details: `Driver "${values.name}" created`,
-        });
-        onDriverCreated({ id: driverId, ...values });
-        setIsOpen(false);
-    } else {
-         toast({
-            variant: "destructive",
-            title: "Error",
-            description: "No se pudo crear el motorista.",
-        });
-    }
+  const onSubmit = (values: z.infer<typeof driverSchema>) => {
+    onSave(values);
   };
   
   const handleOpenChange = (open: boolean) => {
@@ -140,7 +116,7 @@ export function CreateDriverDialog({ isOpen, setIsOpen, initialName, onDriverCre
               <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">Guardar</Button>
+              <Button type="submit">Guardar Motorista</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -148,3 +124,4 @@ export function CreateDriverDialog({ isOpen, setIsOpen, initialName, onDriverCre
     </Dialog>
   );
 }
+
