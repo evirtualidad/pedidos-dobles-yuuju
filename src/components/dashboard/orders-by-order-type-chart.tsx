@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell } from "recharts"
+import { Pie, PieChart } from "recharts"
 
 import {
   ChartContainer,
@@ -19,28 +19,6 @@ interface OrdersByOrderTypeChartProps {
   orders: Order[]
 }
 
-const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-  if (!percent || percent === 0) {
-    return null;
-  }
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text
-      x={x}
-      y={y}
-      fill="white"
-      textAnchor="middle"
-      dominantBaseline="central"
-      className="text-xs font-bold"
-    >
-      {`${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-};
 
 export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) {
     const { orderTypes } = useData();
@@ -63,7 +41,7 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
 
 
     const chartData = React.useMemo(() => {
-        const orderTypeCounts = orderTypes.map(orderType => {
+        return orderTypes.map(orderType => {
             const key = orderType.name.replace(/\s+/g, '');
             return {
                 name: orderType.name,
@@ -71,14 +49,17 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
                 total: orders.filter(order => order.type === orderType.name).reduce((sum, order) => sum + order.quantity, 0),
                 fill: `var(--color-${key})`,
             }
-        });
-        return orderTypeCounts.filter(b => b.total > 0);
+        }).filter(b => b.total > 0);
     }, [orders, orderTypes]);
+    
+    const totalOrders = React.useMemo(() => {
+        return chartData.reduce((acc, curr) => acc + curr.total, 0)
+    }, [chartData])
 
   return (
     <ChartContainer
         config={chartConfig}
-        className="mx-auto aspect-square max-h-[250px]"
+        className="mx-auto flex aspect-square h-[300px] w-full flex-col items-center justify-center"
     >
         <PieChart>
         <ChartTooltip
@@ -89,18 +70,22 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
             data={chartData}
             dataKey="total"
             nameKey="name"
-            labelLine={false}
-            label={renderCustomizedLabel}
+            innerRadius="60%"
+            strokeWidth={5}
         >
-           {chartData.map((entry) => (
-              <Cell key={`cell-${entry.key}`} fill={chartConfig[entry.key]?.color} />
-            ))}
         </Pie>
-        <ChartLegend
-            content={<ChartLegendContent nameKey="name" />}
-            className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-end"
-        />
         </PieChart>
+        {chartData.length > 0 && (
+             <div
+                className="flex flex-col text-center"
+                style={{
+                    marginTop: "-150px"
+                }}
+            >
+                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-2xl font-bold">{totalOrders}</p>
+            </div>
+        )}
     </ChartContainer>
   )
 }
