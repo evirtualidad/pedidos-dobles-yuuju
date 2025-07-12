@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import * as React from "react";
 
 export function Header() {
@@ -56,6 +56,9 @@ export function Header() {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="pr-0 pt-12">
+                    <SheetHeader>
+                        <SheetTitle className="sr-only">Navegación Principal</SheetTitle>
+                    </SheetHeader>
                     <SheetClose asChild>
                         <Link
                             href="/"
