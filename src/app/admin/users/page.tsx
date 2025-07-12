@@ -29,7 +29,7 @@ export default function AdminUsersPage() {
         if (!currentUser || !currentRole) return;
         try {
             // Step 1: Create user in Firebase Auth
-            // Note: For security, never send passwords from the client in a real app. 
+            // For security, never send passwords from the client in a real app. 
             // This should be handled by a secure backend function. We use a default for this demo.
             const userCredential = await createUserWithEmailAndPassword(auth, userData.email, "password");
             const firebaseUser = userCredential.user;
@@ -55,7 +55,7 @@ export default function AdminUsersPage() {
 
             toast({
                 title: "Usuario Creado",
-                description: `El usuario "${userData.name}" ha sido creado exitosamente. La contraseña inicial es "password".`,
+                description: `El usuario "${userData.name}" ha sido creado. La contraseña inicial es "password".`,
             });
 
         } catch (error: any) {

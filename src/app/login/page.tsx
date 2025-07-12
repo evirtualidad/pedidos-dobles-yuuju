@@ -12,6 +12,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from "@/components/ui/card";
 import {
   Form,
@@ -52,7 +53,7 @@ export default function LoginPage() {
     if (!success) {
       toast({
         variant: "destructive",
-        title: "Error al iniciar sesión",
+        title: "Credenciales Inválidas",
         description: "El correo o la contraseña son incorrectos. Por favor, inténtalo de nuevo.",
       });
     }
@@ -118,6 +119,11 @@ export default function LoginPage() {
             </form>
           </Form>
         </CardContent>
+        <CardFooter>
+            <p className="text-xs text-muted-foreground text-center w-full">
+                Nota: El primer usuario (administrador) debe ser creado manualmente en la consola de Firebase Authentication por el desarrollador.
+            </p>
+        </CardFooter>
       </Card>
     </div>
   );
