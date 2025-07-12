@@ -14,10 +14,10 @@ import {
     deleteDoc, 
     doc,
     query,
-    where,
     orderBy,
     Timestamp,
-    getDocs
+    getDoc,
+    setDoc,
 } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -93,13 +93,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     React.useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
-                 const usersRef = collection(db, "users");
-                const q = query(usersRef, where("email", "==", firebaseUser.email));
-                const querySnapshot = await getDocs(q);
+                const userDocRef = doc(db, "users", firebaseUser.uid);
+                const userDocSnap = await getDoc(userDocRef);
                 
-                if (!querySnapshot.empty) {
-                    const userDoc = querySnapshot.docs[0];
-                    const userData = { id: userDoc.id, ...userDoc.data() } as UserWithId;
+                if (userDocSnap.exists()) {
+                    const userData = { id: userDocSnap.id, ...userDocSnap.data() } as UserWithId;
                     setUser(userData);
                     setRole(userData.role);
                      if (pathname === '/login') {
@@ -191,6 +189,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
              toast({ variant: "destructive", title: "Error al guardar", description: "No se pudo crear el elemento." });
         }
     };
+    
+    const setItemWithId = async <T,>(collectionName: string, id: string, item: T) => {
+        try {
+            await setDoc(doc(db, collectionName, id), item as any);
+        } catch (error) {
+             console.error(`Error setting document in ${collectionName}:`, error);
+             toast({ variant: "destructive", title: "Error al guardar", description: "No se pudo crear el elemento." });
+        }
+    };
 
     const updateItem = async (collectionName: string, id: string, item: any) => {
         const docRef = doc(db, collectionName, id);
@@ -227,7 +234,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const deleteOrderType = (id: string) => deleteItem("orderTypes", id);
 
     // User Management
-    const addUser = (user: Omit<UserWithId, 'id'>) => addItem("users", user);
+    const addUser = (id: string, user: Omit<UserWithId, 'id'>) => setItemWithId("users", id, user);
     const updateUser = (id: string, user: Omit<UserWithId, 'id'>) => updateItem("users", id, user);
     const deleteUser = (id: string) => deleteItem("users", id);
 
@@ -261,7 +268,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             brands, addBrand, updateBrand, deleteBrand,
             fleets, addFleet, updateFleet, deleteFleet,
             orderTypes, addOrderType, updateOrderType, deleteOrderType,
-            users, addUser, updateUser, deleteUser,
+            users, addUser: () => Promise.resolve(), updateUser, deleteUser,
             orders, addOrder, updateOrder, deleteOrder,
             auditLogs, addAuditLog,
             toast,

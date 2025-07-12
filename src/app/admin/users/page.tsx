@@ -23,19 +23,20 @@ export default function AdminUsersPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState<UserWithId | null>(null);
 
-    const handleAddUser = async (user: Omit<UserWithId, 'id'>) => {
+    const handleAddUser = async (userData: Omit<UserWithId, 'id'>) => {
         try {
             // Create user in Firebase Auth
             // For simplicity, we'll use a default password. 
             // In a real app, you'd have a more secure way of setting this.
-            const userCredential = await createUserWithEmailAndPassword(auth, user.email, "password");
+            const userCredential = await createUserWithEmailAndPassword(auth, userData.email, "password");
+            const newAuthUser = userCredential.user;
 
-            // Add user profile to Firestore
-            await addUser(user);
+            // Add user profile to Firestore using the Auth UID as the document ID
+            await addUser(newAuthUser.uid, userData);
 
             toast({
                 title: "Usuario Creado",
-                description: `El usuario "${user.name}" ha sido creado. La contraseña temporal es "password".`,
+                description: `El usuario "${userData.name}" ha sido creado. La contraseña temporal es "password".`,
             });
         } catch (error: any) {
             console.error("Error creating user:", error);
