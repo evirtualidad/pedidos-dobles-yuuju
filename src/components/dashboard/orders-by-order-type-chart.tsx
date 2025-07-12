@@ -4,11 +4,9 @@
 import * as React from "react"
 import { Pie, PieChart, Cell } from "recharts"
 
-import {
-  ChartConfig,
-} from "@/components/ui/chart"
 import type { Order } from "@/lib/types"
 import { useData } from "@/contexts/data-context"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface OrdersByOrderTypeChartProps {
   orders: Order[]
@@ -16,6 +14,11 @@ interface OrdersByOrderTypeChartProps {
 
 export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) {
     const { orderTypes } = useData();
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const chartColors = [
         "hsl(var(--chart-1))",
@@ -40,14 +43,35 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
 
         return filteredData.map(item => ({
             ...item,
-            percentage: totalOrders > 0 ? ((item.total / totalOrders) * 100).toFixed(1) : 0,
+            percentage: totalOrders > 0 ? ((item.total / totalOrders) * 100).toFixed(1) : "0",
         }));
     }, [orders, orderTypes]);
     
-    const totalOrders = React.useMemo(() => {
+    const totalOrdersValue = React.useMemo(() => {
         return chartData.reduce((acc, curr) => acc + curr.total, 0)
     }, [chartData])
 
+    if (!isMounted) {
+        return (
+            <div className="w-full h-[300px] flex items-center justify-between gap-6">
+                <div className="relative w-1/2 h-full flex items-center justify-center">
+                    <Skeleton className="h-[200px] w-[200px] rounded-full" />
+                </div>
+                <div className="w-1/2 flex flex-col gap-2 text-sm overflow-y-auto h-full pr-2">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 w-full">
+                                <Skeleton className="h-3 w-3 rounded-full" />
+                                <Skeleton className="h-4 w-2/3" />
+                            </div>
+                            <Skeleton className="h-4 w-1/4" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    
     if (chartData.length === 0) {
         return (
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
@@ -78,15 +102,15 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
             </PieChart>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <p className="text-xs text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{totalOrders}</p>
+                <p className="text-2xl font-bold">{totalOrdersValue}</p>
             </div>
         </div>
         <div className="w-1/2 flex flex-col gap-2 text-sm overflow-y-auto h-full pr-2">
             {chartData.map(entry => (
                 <div key={entry.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <span className="h-3 w-3 rounded-full" style={{ backgroundColor: entry.fill }} />
-                        <span>{entry.name}</span>
+                        <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: entry.fill }} />
+                        <span className="truncate" title={entry.name}>{entry.name}</span>
                     </div>
                     <span className="font-semibold">{entry.percentage}%</span>
                 </div>
@@ -95,4 +119,3 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
     </div>
   )
 }
-
