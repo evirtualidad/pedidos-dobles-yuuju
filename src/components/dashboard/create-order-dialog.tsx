@@ -81,7 +81,10 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
           observations: order.observations || "",
         });
       } else {
-        const defaultType = orderTypes.length > 0 ? orderTypes[0].name : "";
+        const defaultType = orderTypes.find(t => t.name === "Larga distancia") 
+            ? "Larga distancia" 
+            : orderTypes.length > 0 ? orderTypes[0].name : "";
+
         form.reset({
           orderNumber: "",
           driver: "",
@@ -98,22 +101,16 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
 
 
   function onSubmit(values: z.infer<typeof orderSchema>) {
-    if (!order) {
-      const isDuplicate = existingOrders.some(
-        o =>
-          o.orderNumber === values.orderNumber &&
-          o.driver === values.driver &&
-          format(o.date, 'yyyy-MM-dd') === format(values.date, 'yyyy-MM-dd')
-      );
-
-      if (isDuplicate) {
-        toast({
-          variant: "destructive",
-          title: "Pedido Duplicado",
-          description: "Ya existe un pedido con este número, motorista y fecha.",
-        });
-        return;
-      }
+    if (!order) { // Check for duplicates only on new orders
+        const existingOrder = existingOrders.find(o => o.orderNumber === values.orderNumber);
+        if (existingOrder) {
+            toast({
+                variant: "destructive",
+                title: "Número de Orden Duplicado",
+                description: `El número de orden "${values.orderNumber}" ya fue asignado al motorista ${existingOrder.driver}.`,
+            });
+            return;
+        }
     }
     
     onSave(values, newDriverData || undefined);
