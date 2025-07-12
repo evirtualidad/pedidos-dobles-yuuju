@@ -65,40 +65,48 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   const orderTypeNames = orderTypes.map(ot => ot.name);
   const drivers = [...new Set(orders.map(o => o.driver))];
 
-
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
+    mode: 'onChange', // Validate on change to give user immediate feedback
     defaultValues: {
       orderNumber: "",
       driver: "",
       date: new Date(),
       brand: "",
       fleet: "",
-      type: "Larga Distancia",
+      type: "",
       quantity: 1,
       observations: "",
     },
   });
+  
+  const setDefaultValues = React.useCallback(() => {
+    form.reset({
+      orderNumber: "",
+      driver: drivers[0] || "",
+      date: new Date(),
+      brand: brandNames[0] || "",
+      fleet: fleetNames[0] || "",
+      type: orderTypeNames[0] || "",
+      quantity: 1,
+      observations: "",
+    });
+  }, [form, drivers, brandNames, fleetNames, orderTypeNames]);
+
 
   React.useEffect(() => {
-    if (order) {
-      form.reset({
-        ...order,
-        observations: order.observations || "",
-      });
-    } else {
-      form.reset({
-        orderNumber: "",
-        driver: "",
-        date: new Date(),
-        brand: "",
-        fleet: "",
-        type: "",
-        quantity: 1,
-        observations: "",
-      });
+    if(isOpen) {
+      if (order) {
+        form.reset({
+          ...order,
+          date: new Date(order.date), // Ensure date is a Date object
+          observations: order.observations || "",
+        });
+      } else {
+        setDefaultValues();
+      }
     }
-  }, [order, form, isOpen]);
+  }, [order, form, isOpen, setDefaultValues]);
 
   function onSubmit(values: z.infer<typeof orderSchema>) {
     // Duplicate check only applies when creating a new order
@@ -120,6 +128,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
       }
     }
     
+    // This is a new order, add the user who entered it
     const saveData = order 
         ? values 
         : { ...values, enteredBy: user.name };
@@ -135,9 +144,6 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   }
   
   const handleOpenChange = (open: boolean) => {
-    if (!open) {
-        form.reset();
-    }
     setIsOpen(open);
   }
 
@@ -211,9 +217,11 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Nombre Motorista</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={drivers.length === 0}>
                                 <FormControl>
-                                    <SelectTrigger><SelectValue placeholder="Seleccione un motorista" /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={drivers.length > 0 ? "Seleccione un motorista" : "Añada órdenes para ver motoristas"} />
+                                    </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>{drivers.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                             </Select>
@@ -228,9 +236,11 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Marca</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={brandNames.length === 0}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={brandNames.length > 0 ? "Seleccione una marca" : "Añada marcas en Gestión"} />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>{brandNames.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent>
                                 </Select>
@@ -244,9 +254,11 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Tipo de Pedido</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={orderTypeNames.length === 0}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Seleccione un tipo" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={orderTypeNames.length > 0 ? "Seleccione un tipo" : "Añada tipos en Gestión"} />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>{orderTypeNames.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                                 </Select>
@@ -262,9 +274,11 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Flota</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={fleetNames.length === 0}>
                                     <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Seleccione una flota" /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={fleetNames.length > 0 ? "Seleccione una flota" : "Añada flotas en Gestión"} />
+                                        </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>{fleetNames.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
                                 </Select>
