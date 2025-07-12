@@ -124,14 +124,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 } else {
                     console.log("User profile not found in Firestore, creating one...");
                     // First user to sign in becomes an admin
-                    const newUserProfile: UserWithId = {
-                        id: firebaseUser.uid,
+                    const newUserProfile: Omit<UserWithId, 'id'> = {
                         name: firebaseUser.displayName || firebaseUser.email || 'New User',
                         email: firebaseUser.email!,
                         role: 'Admin',
                     };
                     await setDoc(userDocRef, newUserProfile);
-                    setUser(newUserProfile);
+                    setUser({id: firebaseUser.uid, ...newUserProfile});
                     setRole(newUserProfile.role);
                     toast({
                         title: "Bienvenido, Admin",
@@ -251,12 +250,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (!user && pathname !== '/login') {
-        return <LoadingScreen />;
-    }
-
-    if (user && pathname === '/login') {
-        // Already handled by useEffect, but this is a fallback
-        router.push('/');
+        // This check prevents content from flashing while the redirect in useEffect is processed.
         return <LoadingScreen />;
     }
 
