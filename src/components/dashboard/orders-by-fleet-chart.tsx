@@ -100,8 +100,8 @@ export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
             ))}
         </Pie>
         <ChartLegend
-            content={<ChartLegendContent nameKey="name" className="[&>*]:justify-end"/>}
-            className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4"
+            content={<ChartLegendContent nameKey="name" />}
+            className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-end"
         />
         </PieChart>
     </ChartContainer>
