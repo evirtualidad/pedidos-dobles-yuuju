@@ -105,7 +105,7 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
                 <p className="text-2xl font-bold">{totalOrdersValue}</p>
             </div>
         </div>
-        <div className="flex flex-col gap-2 text-sm pr-2 w-full">
+        <div className="flex flex-1 flex-col gap-2 text-sm pr-2">
             {chartData.map(entry => (
                 <div key={entry.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
