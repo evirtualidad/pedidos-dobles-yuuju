@@ -72,9 +72,8 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   });
 
   React.useEffect(() => {
-    // Only reset form when dialog opens or the specific order changes
     if (isOpen) {
-      setNewDriverData(null); // Reset pending new driver
+      setNewDriverData(null);
       if (order) {
         form.reset({
           ...order,
@@ -82,19 +81,20 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
           observations: order.observations || "",
         });
       } else {
+        const defaultType = orderTypeNames.includes("Larga distancia") ? "Larga distancia" : "";
         form.reset({
           orderNumber: "",
           driver: "",
           date: new Date(),
           brand: "",
           fleet: "",
-          type: orderTypeNames.includes("Larga distancia") ? "Larga distancia" : "",
+          type: defaultType,
           quantity: 1,
           observations: "",
         });
       }
     }
-  }, [isOpen, order, form, brandNames, orderTypeNames]);
+  }, [isOpen, order, form, orderTypeNames]);
 
 
   function onSubmit(values: z.infer<typeof orderSchema>) {
@@ -116,7 +116,6 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
       }
     }
     
-    // Pass new driver data if it exists
     onSave(values, newDriverData || undefined);
 
     toast({
@@ -133,10 +132,8 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
 
   const handleDriverSelect = (driver: Driver | Omit<Driver, 'id'>) => {
     if ('id' in driver) {
-        // Existing driver selected
         setNewDriverData(null);
     } else {
-        // New driver data received
         setNewDriverData(driver);
     }
     form.setValue("driver", driver.name, { shouldValidate: true });
