@@ -82,12 +82,12 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
         });
       } else {
         form.reset({
-          orderNumber: `ORD-${Date.now() % 10000}`,
+          orderNumber: "",
           driver: "",
           date: new Date(),
-          brand: brandNames.length > 0 ? brandNames[0] : "",
+          brand: "",
           fleet: "",
-          type: orderTypeNames.length > 0 ? orderTypeNames[0] : "",
+          type: orderTypeNames.includes("Larga distancia") ? "Larga distancia" : (orderTypeNames[0] || ""),
           quantity: 1,
           observations: "",
         });
@@ -326,3 +326,5 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
     </>
   )
 }
+
+    
