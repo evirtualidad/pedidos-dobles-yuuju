@@ -66,7 +66,7 @@ function DashboardPageContent() {
           <StatsCards orders={filteredOrders} />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-2">
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
            <Card>
               <CardHeader>
                   <CardTitle>Órdenes por Marca</CardTitle>
@@ -76,18 +76,7 @@ function DashboardPageContent() {
                   <OrdersByBrandChart orders={filteredOrders} />
               </CardContent>
           </Card>
-          {role === 'Admin' ? (
-             <Card>
-                <CardHeader>
-                    <CardTitle>Órdenes por Flota</CardTitle>
-                    <CardDescription>Comparación de órdenes entre flotas.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <OrdersByFleetChart orders={filteredOrders} />
-                </CardContent>
-            </Card>
-          ) : (
-            <Card>
+           <Card>
               <CardHeader>
                   <CardTitle>Órdenes por Tipo de Pedido</CardTitle>
                   <CardDescription>Distribución de órdenes por tipo.</CardDescription>
@@ -96,8 +85,21 @@ function DashboardPageContent() {
                   <OrdersByOrderTypeChart orders={filteredOrders} />
               </CardContent>
             </Card>
-          )}
         </div>
+        
+        {role === 'Admin' && (
+             <div className="grid gap-4 md:gap-8 lg:grid-cols-1">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Órdenes por Flota</CardTitle>
+                        <CardDescription>Comparación de órdenes entre flotas.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <OrdersByFleetChart orders={filteredOrders} />
+                    </CardContent>
+                </Card>
+            </div>
+        )}
 
         <div className="grid gap-4 md:gap-8 lg:grid-cols-1">
           <Card>

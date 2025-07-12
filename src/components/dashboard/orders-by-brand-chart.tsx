@@ -39,7 +39,7 @@ export function OrdersByBrandChart({ orders }: OrdersByBrandChartProps) {
             }
         });
         // Sort by total descending and return only brands with orders
-        return brandCounts.filter(b => b.total > 0).sort((a, b) => a.total - b.total);
+        return brandCounts.filter(b => b.total > 0).sort((a, b) => b.total - a.total);
     }, [orders, brands]);
 
   return (

@@ -39,37 +39,46 @@ export function OrdersByFleetChart({ orders }: OrdersByFleetChartProps) {
                 total: orders.filter(order => order.fleet === fleet.name).reduce((sum, order) => sum + order.quantity, 0),
             }
         });
-        return fleetCounts.filter(f => f.total > 0).sort((a, b) => a.total - b.total);
+        return fleetCounts.filter(f => f.total > 0).sort((a, b) => b.total - a.total);
     }, [orders, fleets]);
 
   return (
     <ChartContainer
         config={chartConfig}
-        className="w-full h-[250px]"
+        className="w-full h-[300px]"
     >
         <BarChart
           accessibilityLayer
           data={chartData}
-          layout="vertical"
           margin={{
+            top: 20,
             left: 10,
             right: 10,
+            bottom: 5,
           }}
         >
-          <CartesianGrid horizontal={false} />
-          <YAxis
+          <CartesianGrid vertical={false} />
+          <XAxis
             dataKey="name"
-            type="category"
             tickLine={false}
             tickMargin={10}
             axisLine={false}
             className="text-xs"
+            angle={-45}
+            textAnchor="end"
+            height={50}
             interval={0}
           />
-          <XAxis dataKey="total" type="number" hide />
+          <YAxis
+            allowDecimals={false}
+            tickLine={false}
+            axisLine={false}
+            tickMargin={10}
+            className="text-xs"
+          />
           <ChartTooltip
             cursor={false}
-            content={<ChartTooltipContent hideLabel />}
+            content={<ChartTooltipContent />}
           />
           <Bar dataKey="total" fill="var(--color-total)" radius={4}>
           </Bar>
