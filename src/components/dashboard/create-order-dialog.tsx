@@ -6,6 +6,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { format } from "date-fns"
+import { es } from "date-fns/locale"
 import { Calendar as CalendarIcon, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -186,7 +187,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                                       )}
                                       >
                                       {field.value ? (
-                                          format(field.value, "PPP")
+                                          format(field.value, "PPP", { locale: es })
                                       ) : (
                                           <span>Seleccione una fecha</span>
                                       )}
@@ -199,6 +200,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                                       mode="single"
                                       selected={field.value}
                                       onSelect={field.onChange}
+                                      locale={es}
                                       initialFocus
                                   />
                                   </PopoverContent>
@@ -326,7 +328,3 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
     </>
   )
 }
-
-    
-
-    
