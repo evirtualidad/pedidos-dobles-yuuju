@@ -47,7 +47,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
 import { DeleteOrderDialog } from "./delete-order-dialog"
@@ -62,6 +61,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { cn } from "@/lib/utils"
 import { Calendar } from "../ui/calendar"
 import { useData } from "@/contexts/data-context"
+import Link from "next/link"
 
 export function OrdersTable() {
   const { role, user } = useRole()
@@ -88,6 +88,7 @@ export function OrdersTable() {
 
   const brandNames = brands.map(b => b.name);
   const fleetNames = fleets.map(f => f.name);
+  const drivers = [...new Set(orders.map(o => o.driver))];
 
   const handleFilterChange = (filterName: keyof typeof filters, value: string) => {
     // Reset page index when filters change
@@ -130,7 +131,7 @@ export function OrdersTable() {
         (filters.brand === '' || order.brand === filters.brand) &&
         (filters.fleet === '' || order.fleet === filters.fleet)
       );
-    }).sort((a, b) => b.date.getTime() - a.date.getTime());
+    });
   }, [orders, filters, role, user.fleet, dateRange]);
   
   const pageCount = Math.ceil(filteredOrders.length / pagination.pageSize);
@@ -141,9 +142,9 @@ export function OrdersTable() {
     return filteredOrders.slice(start, end);
   }, [filteredOrders, pagination]);
 
-  const handleAddOrder = (newOrder: Omit<Order, 'id'>) => {
-    addOrder(newOrder);
-     addAuditLog({
+  const handleAddOrder = async (newOrder: Omit<Order, 'id'>) => {
+    await addOrder(newOrder);
+    await addAuditLog({
         user: user.name,
         role: role,
         action: 'Created Order',
@@ -151,10 +152,10 @@ export function OrdersTable() {
     });
   };
   
-  const handleUpdateOrder = (updatedOrderData: Omit<Order, 'id'>) => {
+  const handleUpdateOrder = async (updatedOrderData: Omit<Order, 'id'>) => {
       if(!selectedOrder) return;
-      updateOrder(selectedOrder.id, updatedOrderData);
-      addAuditLog({
+      await updateOrder(selectedOrder.id, updatedOrderData);
+      await addAuditLog({
           user: user.name,
           role: role,
           action: 'Updated Order',
@@ -163,18 +164,19 @@ export function OrdersTable() {
       setSelectedOrder(null);
   };
   
-  const handleDeleteOrder = () => {
+  const handleDeleteOrder = async () => {
     if (!selectedOrder) return;
-    deleteOrder(selectedOrder.id);
-    addAuditLog({
+    const orderToDelete = selectedOrder;
+    await deleteOrder(orderToDelete.id);
+    await addAuditLog({
         user: user.name,
         role: role,
         action: 'Deleted Order',
-        details: `Order ${selectedOrder.orderNumber} deleted`,
+        details: `Order ${orderToDelete.orderNumber} deleted`,
     });
     toast({
       title: "Orden Eliminada",
-      description: `La orden ${selectedOrder.orderNumber} ha sido eliminada.`,
+      description: `La orden ${orderToDelete.orderNumber} ha sido eliminada.`,
     });
     setIsDeleteDialogOpen(false);
     setSelectedOrder(null);
@@ -375,9 +377,11 @@ export function OrdersTable() {
           </TableHeader>
           <TableBody>
             {paginatedOrders.map((order) => (
-              <TableRow key={order.id} onClick={() => openViewDialog(order)} className="cursor-pointer">
+              <TableRow key={order.id}>
                 <TableCell>
-                  <ClientDate date={order.date} formatString="MM/dd/yyyy" />
+                  <Link href={`/orders/${order.id}`} className="hover:underline">
+                    <ClientDate date={order.date} formatString="MM/dd/yyyy" />
+                  </Link>
                 </TableCell>
                 <TableCell>{order.driver}</TableCell>
                 <TableCell>{order.orderNumber}</TableCell>
@@ -408,7 +412,7 @@ export function OrdersTable() {
                         </TableCell>
                     </>
                 )}
-                <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button aria-haspopup="true" size="icon" variant="ghost">

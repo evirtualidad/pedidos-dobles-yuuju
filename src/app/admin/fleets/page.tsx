@@ -22,16 +22,16 @@ export default function AdminFleetsPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedFleet, setSelectedFleet] = React.useState<Fleet | null>(null);
 
-    const handleAddFleet = (name: string) => {
-        addFleet(name);
+    const handleAddFleet = async (name: string) => {
+        await addFleet(name);
     };
 
-    const handleUpdateFleet = (id: string, name: string) => {
-        updateFleet(id, name);
+    const handleUpdateFleet = async (id: string, name: string) => {
+        await updateFleet(id, name);
         setSelectedFleet(null);
     };
 
-    const handleDeleteFleet = () => {
+    const handleDeleteFleet = async () => {
         if (selectedFleet) {
             const isFleetInUse = orders.some(order => order.fleet === selectedFleet.name);
 
@@ -46,7 +46,7 @@ export default function AdminFleetsPage() {
                 return;
             }
             
-            deleteFleet(selectedFleet.id);
+            await deleteFleet(selectedFleet.id);
             setIsDeleteDialogOpen(false);
             setSelectedFleet(null);
         }

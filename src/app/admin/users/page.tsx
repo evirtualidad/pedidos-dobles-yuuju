@@ -20,18 +20,18 @@ export default function AdminUsersPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState<UserWithId | null>(null);
 
-    const handleAddUser = (user: Omit<UserWithId, 'id'>) => {
-        addUser(user);
+    const handleAddUser = async (user: Omit<UserWithId, 'id'>) => {
+        await addUser(user);
     };
 
-    const handleUpdateUser = (id: string, user: Omit<UserWithId, 'id'>) => {
-        updateUser(id, user);
+    const handleUpdateUser = async (id: string, user: Omit<UserWithId, 'id'>) => {
+        await updateUser(id, user);
         setSelectedUser(null);
     };
 
-    const handleDeleteUser = () => {
+    const handleDeleteUser = async () => {
         if (selectedUser) {
-            deleteUser(selectedUser.id);
+            await deleteUser(selectedUser.id);
             setIsDeleteDialogOpen(false);
             setSelectedUser(null);
         }

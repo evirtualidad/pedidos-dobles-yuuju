@@ -22,16 +22,16 @@ export default function AdminOrderTypesPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedOrderType, setSelectedOrderType] = React.useState<OrderType | null>(null);
 
-    const handleAddOrderType = (name: string) => {
-        addOrderType(name);
+    const handleAddOrderType = async (name: string) => {
+        await addOrderType(name);
     };
 
-    const handleUpdateOrderType = (id: string, name: string) => {
-        updateOrderType(id, name);
+    const handleUpdateOrderType = async (id: string, name: string) => {
+        await updateOrderType(id, name);
         setSelectedOrderType(null);
     };
 
-    const handleDeleteOrderType = () => {
+    const handleDeleteOrderType = async () => {
         if (selectedOrderType) {
             const isOrderTypeInUse = orders.some(order => order.type === selectedOrderType.name);
 
@@ -46,7 +46,7 @@ export default function AdminOrderTypesPage() {
                 return;
             }
 
-            deleteOrderType(selectedOrderType.id);
+            await deleteOrderType(selectedOrderType.id);
             setIsDeleteDialogOpen(false);
             setSelectedOrderType(null);
         }

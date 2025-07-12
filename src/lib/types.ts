@@ -1,4 +1,6 @@
 
+import type { Timestamp } from "firebase/firestore";
+
 export type Order = {
   id: string;
   orderNumber: string;
@@ -12,6 +14,11 @@ export type Order = {
   enteredBy: string; 
 };
 
+// Type for reading from Firestore
+export type FirebaseOrder = Omit<Order, 'id' | 'date'> & {
+  date: Timestamp;
+};
+
 export type AuditLog = {
   id: string;
   user: string;
@@ -20,6 +27,12 @@ export type AuditLog = {
   timestamp: Date;
   details: string;
 };
+
+// Type for reading from Firestore
+export type FirebaseAuditLog = Omit<AuditLog, 'id' | 'timestamp'> & {
+  timestamp: Timestamp;
+};
+
 
 export type Role = 'Admin' | 'Fleet Supervisor' | 'Data Entry';
 

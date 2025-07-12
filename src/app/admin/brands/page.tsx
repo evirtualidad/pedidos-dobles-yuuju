@@ -22,16 +22,16 @@ export default function AdminBrandsPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedBrand, setSelectedBrand] = React.useState<Brand | null>(null);
 
-    const handleAddBrand = (name: string) => {
-        addBrand(name);
+    const handleAddBrand = async (name: string) => {
+        await addBrand(name);
     };
 
-    const handleUpdateBrand = (id: string, name: string) => {
-        updateBrand(id, name);
+    const handleUpdateBrand = async (id: string, name: string) => {
+        await updateBrand(id, name);
         setSelectedBrand(null);
     };
 
-    const handleDeleteBrand = () => {
+    const handleDeleteBrand = async () => {
         if (selectedBrand) {
             const isBrandInUse = orders.some(order => order.brand === selectedBrand.name);
 
@@ -46,7 +46,7 @@ export default function AdminBrandsPage() {
                 return;
             }
 
-            deleteBrand(selectedBrand.id);
+            await deleteBrand(selectedBrand.id);
             setIsDeleteDialogOpen(false);
             setSelectedBrand(null);
         }

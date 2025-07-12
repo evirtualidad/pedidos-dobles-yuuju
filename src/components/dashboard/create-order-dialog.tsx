@@ -32,7 +32,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
-import { drivers } from "@/lib/data"
 import { Order } from "@/lib/types"
 import { useRole } from "@/contexts/role-context"
 import { useData } from "@/contexts/data-context"
@@ -59,11 +58,13 @@ type CreateOrderDialogProps = {
 export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, order }: CreateOrderDialogProps) {
   const { toast } = useToast();
   const { user } = useRole();
-  const { brands, fleets, orderTypes } = useData();
+  const { brands, fleets, orderTypes, orders } = useData();
 
   const brandNames = brands.map(b => b.name);
   const fleetNames = fleets.map(f => f.name);
   const orderTypeNames = orderTypes.map(ot => ot.name);
+  const drivers = [...new Set(orders.map(o => o.driver))];
+
 
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
@@ -92,7 +93,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
         date: new Date(),
         brand: "",
         fleet: "",
-        type: "Larga Distancia",
+        type: "",
         quantity: 1,
         observations: "",
       });

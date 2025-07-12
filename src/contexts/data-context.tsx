@@ -2,136 +2,158 @@
 "use client";
 
 import * as React from "react";
-import type { Brand, Fleet, OrderType, UserWithId, Order, AuditLog } from "@/lib/types";
+import type { Brand, Fleet, OrderType, UserWithId, Order, AuditLog, FirebaseOrder, FirebaseAuditLog } from "@/lib/types";
+import { db } from "@/lib/firebase";
 import { 
-    brands as mockBrands, 
-    fleets as mockFleets,
-    orderTypes as mockOrderTypes,
-    mockAuditLogs,
-    mockOrders
-} from "@/lib/data";
-
-const initialBrands: Brand[] = mockBrands.map((name, index) => ({ id: (index + 1).toString(), name }));
-const initialFleets: Fleet[] = mockFleets.map((name, index) => ({ id: (index + 1).toString(), name }));
-const initialOrderTypes: OrderType[] = mockOrderTypes.map((name, index) => ({ id: (index + 1).toString(), name }));
-const initialUsers: UserWithId[] = [
-    { id: '1', name: 'Admin User', role: 'Admin' },
-    { id: '2', name: 'Supervisor Sam', role: 'Fleet Supervisor', fleet: 'RAPI RAPI' },
-    { id: '3', name: 'Data Clerk', role: 'Data Entry' }
-];
-
+    collection, 
+    onSnapshot, 
+    addDoc, 
+    updateDoc, 
+    deleteDoc, 
+    doc,
+    query,
+    orderBy,
+    Timestamp
+} from "firebase/firestore";
 
 type DataContextType = {
   brands: Brand[];
-  addBrand: (name: string) => void;
-  updateBrand: (id: string, name: string) => void;
-  deleteBrand: (id: string) => void;
+  addBrand: (name: string) => Promise<void>;
+  updateBrand: (id: string, name: string) => Promise<void>;
+  deleteBrand: (id: string) => Promise<void>;
   
   fleets: Fleet[];
-  addFleet: (name: string) => void;
-  updateFleet: (id: string, name: string) => void;
-  deleteFleet: (id: string) => void;
+  addFleet: (name: string) => Promise<void>;
+  updateFleet: (id: string, name: string) => Promise<void>;
+  deleteFleet: (id: string) => Promise<void>;
   
   orderTypes: OrderType[];
-  addOrderType: (name: string) => void;
-  updateOrderType: (id: string, name: string) => void;
-  deleteOrderType: (id: string) => void;
+  addOrderType: (name: string) => Promise<void>;
+  updateOrderType: (id: string, name: string) => Promise<void>;
+  deleteOrderType: (id: string) => Promise<void>;
 
   users: UserWithId[];
-  addUser: (user: Omit<UserWithId, 'id'>) => void;
-  updateUser: (id: string, user: Omit<UserWithId, 'id'>) => void;
-  deleteUser: (id: string) => void;
+  addUser: (user: Omit<UserWithId, 'id'>) => Promise<void>;
+  updateUser: (id: string, user: Omit<UserWithId, 'id'>) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
 
   orders: Order[];
-  addOrder: (order: Omit<Order, 'id'>) => void;
-  updateOrder: (id: string, order: Omit<Order, 'id'>) => void;
-  deleteOrder: (id: string) => void;
+  addOrder: (order: Omit<Order, 'id'>) => Promise<void>;
+  updateOrder: (id: string, order: Omit<Order, 'id'>) => Promise<void>;
+  deleteOrder: (id: string) => Promise<void>;
 
   auditLogs: AuditLog[];
-  addAuditLog: (log: Omit<AuditLog, 'id' | 'timestamp'>) => void;
+  addAuditLog: (log: Omit<AuditLog, 'id' | 'timestamp'>) => Promise<void>;
+
+  loading: boolean;
 };
 
 const DataContext = React.createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-    const [brands, setBrands] = React.useState<Brand[]>(initialBrands);
-    const [fleets, setFleets] = React.useState<Fleet[]>(initialFleets);
-    const [orderTypes, setOrderTypes] = React.useState<OrderType[]>(initialOrderTypes);
-    const [users, setUsers] = React.useState<UserWithId[]>(initialUsers);
-    const [orders, setOrders] = React.useState<Order[]>(mockOrders);
-    const [auditLogs, setAuditLogs] = React.useState<AuditLog[]>(mockAuditLogs);
+    const [brands, setBrands] = React.useState<Brand[]>([]);
+    const [fleets, setFleets] = React.useState<Fleet[]>([]);
+    const [orderTypes, setOrderTypes] = React.useState<OrderType[]>([]);
+    const [users, setUsers] = React.useState<UserWithId[]>([]);
+    const [orders, setOrders] = React.useState<Order[]>([]);
+    const [auditLogs, setAuditLogs] = React.useState<AuditLog[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+      const collections = {
+          brands: setBrands,
+          fleets: setFleets,
+          orderTypes: setOrderTypes,
+          users: setUsers,
+      };
+
+      const unsubscribes = Object.entries(collections).map(([collectionName, setter]) => {
+          const q = query(collection(db, collectionName), orderBy("name"));
+          return onSnapshot(q, (querySnapshot) => {
+              const items = querySnapshot.docs.map(doc => ({
+                  id: doc.id,
+                  ...doc.data()
+              } as any));
+              setter(items);
+          });
+      });
+      
+      const ordersQuery = query(collection(db, "orders"), orderBy("date", "desc"));
+      const unsubscribeOrders = onSnapshot(ordersQuery, (querySnapshot) => {
+          const fetchedOrders = querySnapshot.docs.map(doc => {
+              const data = doc.data() as FirebaseOrder;
+              return {
+                  id: doc.id,
+                  ...data,
+                  date: data.date.toDate(),
+              } as Order;
+          });
+          setOrders(fetchedOrders);
+      });
+
+      const auditLogsQuery = query(collection(db, "auditLogs"), orderBy("timestamp", "desc"));
+      const unsubscribeAuditLogs = onSnapshot(auditLogsQuery, (querySnapshot) => {
+          const fetchedLogs = querySnapshot.docs.map(doc => {
+              const data = doc.data() as FirebaseAuditLog;
+              return {
+                  id: doc.id,
+                  ...data,
+                  timestamp: data.timestamp.toDate(),
+              } as AuditLog;
+          });
+          setAuditLogs(fetchedLogs);
+      });
+      
+      Promise.all(Object.values(unsubscribes)).then(() => setLoading(false));
+
+      return () => {
+          unsubscribes.forEach(unsub => unsub());
+          unsubscribeOrders();
+          unsubscribeAuditLogs();
+      };
+    }, []);
+
+    // Generic CRUD functions
+    const addItem = async <T,>(collectionName: string, item: T) => {
+        await addDoc(collection(db, collectionName), item);
+    };
+
+    const updateItem = async (collectionName: string, id: string, item: any) => {
+        const docRef = doc(db, collectionName, id);
+        await updateDoc(docRef, item);
+    };
+
+    const deleteItem = async (collectionName: string, id: string) => {
+        await deleteDoc(doc(db, collectionName, id));
+    };
 
     // Brand Management
-    const addBrand = (name: string) => {
-        const newBrand: Brand = { id: (brands.length + 1).toString(), name };
-        setBrands(prev => [...prev, newBrand]);
-    };
-    const updateBrand = (id: string, name: string) => {
-        setBrands(prev => prev.map(b => b.id === id ? { ...b, name } : b));
-    };
-    const deleteBrand = (id: string) => {
-        setBrands(prev => prev.filter(b => b.id !== id));
-    };
+    const addBrand = (name: string) => addItem("brands", { name });
+    const updateBrand = (id: string, name: string) => updateItem("brands", id, { name });
+    const deleteBrand = (id: string) => deleteItem("brands", id);
 
     // Fleet Management
-    const addFleet = (name: string) => {
-        const newFleet: Fleet = { id: (fleets.length + 1).toString(), name };
-        setFleets(prev => [...prev, newFleet]);
-    };
-    const updateFleet = (id: string, name: string) => {
-        setFleets(prev => prev.map(f => f.id === id ? { ...f, name } : f));
-    };
-    const deleteFleet = (id: string) => {
-        setFleets(prev => prev.filter(f => f.id !== id));
-    };
+    const addFleet = (name: string) => addItem("fleets", { name });
+    const updateFleet = (id: string, name: string) => updateItem("fleets", id, { name });
+    const deleteFleet = (id: string) => deleteItem("fleets", id);
 
     // Order Type Management
-    const addOrderType = (name: string) => {
-        const newOrderType: OrderType = { id: (orderTypes.length + 1).toString(), name };
-        setOrderTypes(prev => [...prev, newOrderType]);
-    };
-    const updateOrderType = (id: string, name: string) => {
-        setOrderTypes(prev => prev.map(ot => ot.id === id ? { ...ot, name } : ot));
-    };
-    const deleteOrderType = (id: string) => {
-        setOrderTypes(prev => prev.filter(ot => ot.id !== id));
-    };
+    const addOrderType = (name: string) => addItem("orderTypes", { name });
+    const updateOrderType = (id: string, name: string) => updateItem("orderTypes", id, { name });
+    const deleteOrderType = (id: string) => deleteItem("orderTypes", id);
 
     // User Management
-    const addUser = (user: Omit<UserWithId, 'id'>) => {
-        const newUser: UserWithId = { id: (users.length + 1).toString(), ...user };
-        setUsers(prev => [...prev, newUser]);
-    };
-    const updateUser = (id: string, user: Omit<UserWithId, 'id'>) => {
-        setUsers(prev => prev.map(u => u.id === id ? { id, ...user } : u));
-    };
-    const deleteUser = (id: string) => {
-        setUsers(prev => prev.filter(u => u.id !== id));
-    };
+    const addUser = (user: Omit<UserWithId, 'id'>) => addItem("users", user);
+    const updateUser = (id: string, user: Omit<UserWithId, 'id'>) => updateItem("users", id, user);
+    const deleteUser = (id: string) => deleteItem("users", id);
 
     // Order Management
-    const addOrder = (order: Omit<Order, 'id'>) => {
-        const newOrder: Order = { id: (Math.random() * 10000).toString(), ...order };
-        setOrders(prev => [newOrder, ...prev]);
-        return newOrder;
-    };
-    const updateOrder = (id: string, orderData: Omit<Order, 'id'>) => {
-        setOrders(prev => prev.map(o => o.id === id ? { id, ...orderData } : o));
-    };
-    const deleteOrder = (id: string) => {
-        setOrders(prev => prev.filter(o => o.id !== id));
-    };
-
+    const addOrder = (order: Omit<Order, 'id'>) => addItem("orders", { ...order, date: Timestamp.fromDate(order.date) });
+    const updateOrder = (id: string, orderData: Omit<Order, 'id'>) => updateItem("orders", id, { ...orderData, date: Timestamp.fromDate(orderData.date) });
+    const deleteOrder = (id: string) => deleteItem("orders", id);
+    
     // Audit Log Management
-    const addAuditLog = (log: Omit<AuditLog, 'id' | 'timestamp'>) => {
-        const newLog: AuditLog = { 
-            id: (auditLogs.length + 1).toString(), 
-            ...log,
-            timestamp: new Date() 
-        };
-        setAuditLogs(prev => [newLog, ...prev]);
-    }
-
+    const addAuditLog = (log: Omit<AuditLog, 'id' | 'timestamp'>) => addItem("auditLogs", { ...log, timestamp: Timestamp.now() });
 
     return (
         <DataContext.Provider value={{ 
@@ -140,7 +162,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             orderTypes, addOrderType, updateOrderType, deleteOrderType,
             users, addUser, updateUser, deleteUser,
             orders, addOrder, updateOrder, deleteOrder,
-            auditLogs, addAuditLog
+            auditLogs, addAuditLog,
+            loading
         }}>
             {children}
         </DataContext.Provider>
