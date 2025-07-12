@@ -1,8 +1,7 @@
-
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown, UserPlus } from "lucide-react"
+import { Check, UserPlus } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -10,7 +9,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
@@ -32,17 +30,26 @@ interface DriverComboboxProps {
 export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxProps) {
   const { drivers } = useData()
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
+  const [inputValue, setInputValue] = React.useState("")
   const [isCreateDriverOpen, setIsCreateDriverOpen] = React.useState(false)
+  const [searchTerm, setSearchTerm] = React.useState("")
 
   React.useEffect(() => {
-    setValue(initialDriverName || "");
-  }, [initialDriverName]);
+    const initialDriver = drivers.find(d => d.name === initialDriverName)
+    if (initialDriver) {
+        setInputValue(initialDriver.name)
+        setSearchTerm(initialDriver.name)
+    } else {
+        setInputValue(initialDriverName || "")
+        setSearchTerm(initialDriverName || "")
+    }
+  }, [initialDriverName, drivers]);
 
   const handleSelect = (driver: Driver) => {
-    setValue(driver.name);
-    onSelect(driver);
-    setOpen(false);
+    setInputValue(driver.name)
+    setSearchTerm(driver.name)
+    onSelect(driver)
+    setOpen(false)
   }
 
   const handleCreateNew = () => {
@@ -51,76 +58,80 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
   }
   
   const handleDriverCreated = (newDriver: Driver) => {
-    setValue(newDriver.name)
-    onSelect(newDriver)
+    handleSelect(newDriver)
     setIsCreateDriverOpen(false)
   }
   
   const filteredDrivers = React.useMemo(() => {
-    if (!value) return drivers;
-    return drivers.filter(driver => driver.name.toLowerCase().includes(value.toLowerCase()));
-  }, [value, drivers]);
+    if (!searchTerm) return drivers;
+    const lowercasedSearchTerm = searchTerm.toLowerCase();
+    return drivers.filter(driver => driver.name.toLowerCase().includes(lowercasedSearchTerm));
+  }, [searchTerm, drivers]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newSearchTerm = e.target.value;
+    setSearchTerm(newSearchTerm);
+    setInputValue(newSearchTerm);
+    if (!open) {
+        setOpen(true);
+    }
+    // Clear selection if user types something new
+    if (drivers.find(d => d.name === newSearchTerm) === undefined) {
+        onSelect(null);
+    }
+  }
 
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
+            value={inputValue}
+            onChange={handleInputChange}
             onClick={() => setOpen(true)}
             placeholder="Buscar o crear motorista..."
             className="w-full justify-between"
             role="combobox"
             aria-expanded={open}
+            autoComplete="off"
           />
         </PopoverTrigger>
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-          <Command shouldFilter={false}>
-            <CommandInput 
-                value={value}
-                onValueChange={setValue}
-                placeholder="Buscar motorista..."
-                disabled={isCreateDriverOpen}
-            />
+          <Command>
             <CommandList>
-              <CommandEmpty>
-                 <div className="p-2">
-                  <p className="text-sm text-center text-muted-foreground mb-2">No se encontró. ¿Crear nuevo?</p>
-                  <Button 
-                    className="w-full" 
-                    size="sm" 
-                    onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleCreateNew();
-                    }}
-                  >
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Crear: "{value}"
-                  </Button>
-                </div>
-              </CommandEmpty>
-              <CommandGroup>
-                {filteredDrivers.map((driver) => (
-                  <CommandItem
-                    key={driver.id}
-                    value={driver.name}
-                    onSelect={() => handleSelect(driver)}
-                    onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleSelect(driver);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value.toLowerCase() === driver.name.toLowerCase() ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {driver.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+              {filteredDrivers.length === 0 && searchTerm.length > 0 ? (
+                 <CommandEmpty>
+                    <div className="p-2">
+                      <p className="text-sm text-center text-muted-foreground mb-2">No se encontró.</p>
+                      <Button 
+                        className="w-full" 
+                        size="sm" 
+                        onClick={handleCreateNew}
+                      >
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Crear motorista: "{searchTerm}"
+                      </Button>
+                    </div>
+                </CommandEmpty>
+              ) : (
+                <CommandGroup>
+                  {filteredDrivers.map((driver) => (
+                    <CommandItem
+                      key={driver.id}
+                      value={driver.name}
+                      onSelect={() => handleSelect(driver)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          inputValue === driver.name ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {driver.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
             </CommandList>
           </Command>
         </PopoverContent>
@@ -128,7 +139,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
       <CreateDriverDialog
         isOpen={isCreateDriverOpen}
         setIsOpen={setIsCreateDriverOpen}
-        initialName={value}
+        initialName={searchTerm}
         onDriverCreated={handleDriverCreated}
       />
     </>
