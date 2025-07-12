@@ -42,7 +42,7 @@ type DataContextType = {
   deleteOrderType: (id: string) => Promise<void>;
 
   users: UserWithId[];
-  addUser: (user: Omit<UserWithId, 'id'>) => Promise<void>;
+  addUser: (id: string, user: Omit<UserWithId, 'id'>) => Promise<void>;
   updateUser: (id: string, user: Omit<UserWithId, 'id'>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
 
@@ -94,19 +94,30 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
                 const userDocRef = doc(db, "users", firebaseUser.uid);
-                const userDocSnap = await getDoc(userDocRef);
+                let userDocSnap = await getDoc(userDocRef);
                 
-                if (userDocSnap.exists()) {
-                    const userData = { id: userDocSnap.id, ...userDocSnap.data() } as UserWithId;
-                    setUser(userData);
-                    setRole(userData.role);
-                     if (pathname === '/login') {
-                        router.push('/');
-                    }
-                } else {
-                    console.error("User profile not found in Firestore.");
-                    auth.signOut();
+                if (!userDocSnap.exists()) {
+                    // This is a new user, or a user that exists in Auth but not Firestore.
+                    // Create a default profile for them.
+                    console.log(`User profile for ${firebaseUser.uid} not found. Creating one.`);
+                    const newUserProfile: User = {
+                        name: firebaseUser.displayName || firebaseUser.email || "New User",
+                        email: firebaseUser.email!,
+                        role: "Admin", // Assign 'Admin' role to the first user(s)
+                    };
+                    await setDoc(userDocRef, newUserProfile);
+                    // Re-fetch the document to ensure we have the latest data
+                    userDocSnap = await getDoc(userDocRef);
                 }
+
+                const userData = { id: userDocSnap.id, ...userDocSnap.data() } as UserWithId;
+                setUser(userData);
+                setRole(userData.role);
+                
+                if (pathname === '/login') {
+                    router.push('/');
+                }
+
             } else {
                 setUser(null);
                 setRole(null);
@@ -268,7 +279,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             brands, addBrand, updateBrand, deleteBrand,
             fleets, addFleet, updateFleet, deleteFleet,
             orderTypes, addOrderType, updateOrderType, deleteOrderType,
-            users, addUser: () => Promise.resolve(), updateUser, deleteUser,
+            users, addUser, updateUser, deleteUser,
             orders, addOrder, updateOrder, deleteOrder,
             auditLogs, addAuditLog,
             toast,
