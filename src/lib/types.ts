@@ -1,4 +1,5 @@
 
+
 export type Order = {
   id: string;
   orderNumber: string;
@@ -45,4 +46,10 @@ export type Brand = {
 export type OrderType = {
   id: string;
   name: string;
+}
+
+export type Driver = {
+    id: string;
+    name: string;
+    fleet: string;
 }

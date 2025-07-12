@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -20,11 +21,10 @@ import {
     onAuthStateChanged, 
     signInWithEmailAndPassword, 
     signOut,
-    createUserWithEmailAndPassword,
     type User as FirebaseUser
 } from "firebase/auth";
 
-import type { Brand, Fleet, OrderType, UserWithId, Order, AuditLog, Role } from "@/lib/types";
+import type { Brand, Fleet, OrderType, UserWithId, Order, AuditLog, Role, Driver } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { db, auth } from "@/lib/firebase";
@@ -51,7 +51,6 @@ type DataContextType = {
   deleteOrderType: (id: string) => Promise<void>;
 
   users: UserWithId[];
-  addUser: (user: Omit<UserWithId, 'id'>, tempPass: string) => Promise<void>;
   updateUser: (id: string, user: Omit<UserWithId, 'id'>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
 
@@ -59,6 +58,9 @@ type DataContextType = {
   addOrder: (order: Omit<Order, 'id' | 'enteredBy'>) => Promise<void>;
   updateOrder: (id: string, order: Omit<Order, 'id' | 'enteredBy'>) => Promise<void>;
   deleteOrder: (id: string) => Promise<void>;
+
+  drivers: Driver[];
+  addDriver: (driver: Omit<Driver, 'id'>) => Promise<string | undefined>;
 
   auditLogs: AuditLog[];
   addAuditLog: (log: Omit<AuditLog, 'id' | 'timestamp'>) => Promise<void>;
@@ -109,6 +111,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const [users, setUsers] = React.useState<UserWithId[]>([]);
     const [orders, setOrders] = React.useState<Order[]>([]);
     const [auditLogs, setAuditLogs] = React.useState<AuditLog[]>([]);
+    const [drivers, setDrivers] = React.useState<Driver[]>([]);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -138,7 +141,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                     });
                 }
 
-                // Redirect if they are on the login page
                 if (pathname === '/login') {
                     router.push('/');
                 }
@@ -164,6 +166,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             onSnapshot(collection(db, "users"), (snapshot) => setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserWithId)))),
             onSnapshot(query(collection(db, "orders"), orderBy("date", "desc")), (snapshot) => setOrders(snapshot.docs.map(doc => mapTimestampToDate({ id: doc.id, ...doc.data() } as Order)))),
             onSnapshot(query(collection(db, "auditLogs"), orderBy("timestamp", "desc")), (snapshot) => setAuditLogs(snapshot.docs.map(doc => mapTimestampToDate({ id: doc.id, ...doc.data() } as AuditLog)))),
+            onSnapshot(collection(db, "drivers"), (snapshot) => setDrivers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Driver)))),
         ];
         return () => unsubscribers.forEach(unsub => unsub());
     }, [user]);
@@ -195,7 +198,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     
     // Generic CRUD Functions for Firestore
     const addItem = async <T>(collectionName: string, item: T) => {
-        await addDoc(collection(db, collectionName), item);
+        const docRef = await addDoc(collection(db, collectionName), item);
+        return docRef;
     };
     
     const updateItem = async <T>(collectionName: string, id: string, item: T) => {
@@ -222,11 +226,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const deleteOrderType = (id: string) => deleteItem('orderTypes', id);
     
     // User Management
-    const addUser = async (userData: Omit<UserWithId, 'id'>, tempPass: string) => {
-        // This is complex, will be handled in the component to get the UID
-        // For now, this is a placeholder. The actual logic is in users/page.tsx
-        return Promise.resolve();
-    };
     const updateUser = (id: string, userData: Omit<UserWithId, 'id'>) => updateItem('users', id, userData);
     const deleteUser = (id: string) => deleteItem('users', id);
 
@@ -234,7 +233,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const addOrder = (orderData: Omit<Order, 'id' | 'enteredBy'>) => {
         if (!user) return Promise.reject("No user logged in");
         const newOrder = { ...orderData, enteredBy: user.name };
-        return addItem('orders', newOrder);
+        return addItem('orders', newOrder).then(() => {});
     }
     const updateOrder = (id: string, orderData: Omit<Order, 'id' | 'enteredBy'>) => {
         if (!user) return Promise.reject("No user logged in");
@@ -245,12 +244,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
     const deleteOrder = (id: string) => deleteItem('orders', id);
 
+    // Driver Management
+    const addDriver = async (driverData: Omit<Driver, 'id'>) => {
+        try {
+            const docRef = await addItem('drivers', driverData);
+            return docRef.id;
+        } catch (e) {
+            console.error("Error adding driver: ", e);
+        }
+    };
+
+
     if (loading) {
         return <LoadingScreen />;
     }
 
     if (!user && pathname !== '/login') {
-        // This check prevents content from flashing while the redirect in useEffect is processed.
         return <LoadingScreen />;
     }
 
@@ -259,8 +268,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         brands, addBrand, updateBrand, deleteBrand,
         fleets, addFleet, updateFleet, deleteFleet,
         orderTypes, addOrderType, updateOrderType, deleteOrderType,
-        users, addUser, updateUser, deleteUser,
+        users, updateUser, deleteUser,
         orders, addOrder, updateOrder, deleteOrder,
+        drivers, addDriver,
         auditLogs, addAuditLog,
         toast,
         loading

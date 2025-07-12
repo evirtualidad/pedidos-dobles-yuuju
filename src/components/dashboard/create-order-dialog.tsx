@@ -32,8 +32,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
-import { Order } from "@/lib/types"
+import { Order, Driver } from "@/lib/types"
 import { useData } from "@/contexts/data-context"
+import { DriverCombobox } from "./driver-combobox"
 
 const orderSchema = z.object({
   orderNumber: z.string().min(1, "No. de pedido es requerido"),
@@ -56,13 +57,11 @@ type CreateOrderDialogProps = {
 
 export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, order }: CreateOrderDialogProps) {
   const { toast } = useToast();
-  const { brands, fleets, orderTypes, orders } = useData();
+  const { brands, orderTypes, drivers } = useData();
 
   const brandNames = React.useMemo(() => brands.map(b => b.name), [brands]);
-  const fleetNames = React.useMemo(() => fleets.map(f => f.name), [fleets]);
   const orderTypeNames = React.useMemo(() => orderTypes.map(ot => ot.name), [orderTypes]);
-  const drivers = React.useMemo(() => [...new Set(orders.map(o => o.driver))], [orders]);
-
+  
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
     mode: 'onChange',
@@ -91,17 +90,17 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
         // Creating a new order
         form.reset({
           orderNumber: `ORD-${Date.now() % 10000}`,
-          driver: drivers.length > 0 ? drivers[0] : "",
+          driver: "",
           date: new Date(),
           brand: brandNames.length > 0 ? brandNames[0] : "",
-          fleet: fleetNames.length > 0 ? fleetNames[0] : "",
+          fleet: "",
           type: orderTypeNames.length > 0 ? orderTypeNames[0] : "",
           quantity: 1,
           observations: "",
         });
       }
     }
-  }, [isOpen, order, form, drivers, brandNames, fleetNames, orderTypeNames]);
+  }, [isOpen, order, form, brandNames, orderTypeNames]);
 
 
   function onSubmit(values: z.infer<typeof orderSchema>) {
@@ -136,6 +135,16 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
   }
+
+  const handleDriverSelect = (driver: Driver | null) => {
+    if(driver) {
+        form.setValue("driver", driver.name, { shouldValidate: true });
+        form.setValue("fleet", driver.fleet, { shouldValidate: true });
+    } else {
+        form.setValue("driver", "", { shouldValidate: true });
+        form.setValue("fleet", "", { shouldValidate: true });
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -205,16 +214,9 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                     control={form.control}
                     name="driver"
                     render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="flex flex-col">
                             <FormLabel>Nombre Motorista</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} >
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccione un motorista" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>{drivers.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-                            </Select>
+                                <DriverCombobox onSelect={handleDriverSelect} initialDriverName={field.value} />
                             <FormMessage />
                         </FormItem>
                     )}
@@ -258,24 +260,6 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                     />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                     <FormField
-                        control={form.control}
-                        name="fleet"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Flota</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value} disabled={fleetNames.length === 0}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={fleetNames.length > 0 ? "Seleccione una flota" : "Añada flotas en Gestión"} />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>{fleetNames.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
                     <FormField
                         control={form.control}
                         name="quantity"
@@ -286,6 +270,19 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                                 <Input type="number" placeholder="e.g., 2" {...field} />
                             </FormControl>
                             <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="fleet"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Flota (Automática)</FormLabel>
+                                    <FormControl>
+                                        <Input disabled {...field} />
+                                    </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />
