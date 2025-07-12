@@ -5,7 +5,7 @@ import * as React from "react";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, MoreHorizontal } from "lucide-react";
+import { PlusCircle, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CreateOrderTypeDialog } from "@/components/admin/create-order-type-dialog";
@@ -15,7 +15,7 @@ import { useData } from "@/contexts/data-context";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminOrderTypesPage() {
-    const { user, role, orderTypes, orders, addOrderType, updateOrderType, deleteOrderType, addAuditLog } = useData();
+    const { user, role, orderTypes, orders, addOrderType, updateOrderType, deleteOrderType, addAuditLog, updateOrderTypesOrder } = useData();
     const { toast } = useToast();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -70,6 +70,20 @@ export default function AdminOrderTypesPage() {
             setSelectedOrderType(null);
         }
     };
+    
+    const handleMove = async (index: number, direction: 'up' | 'down') => {
+        if ((index === 0 && direction === 'up') || (index === orderTypes.length - 1 && direction === 'down')) {
+            return;
+        }
+
+        const newOrderTypes = [...orderTypes];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+        [newOrderTypes[index], newOrderTypes[targetIndex]] = [newOrderTypes[targetIndex], newOrderTypes[index]];
+        
+        await updateOrderTypesOrder(newOrderTypes);
+    };
+
 
     const openEditDialog = (orderType: OrderType) => {
         setSelectedOrderType(orderType);
@@ -94,7 +108,7 @@ export default function AdminOrderTypesPage() {
                         <div>
                             <CardTitle>Tipos de Pedido</CardTitle>
                             <CardDescription>
-                                Gestiona los tipos de pedido.
+                                Gestiona y ordena los tipos de pedido. El primero de la lista será el predeterminado.
                             </CardDescription>
                         </div>
                         <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
@@ -108,15 +122,26 @@ export default function AdminOrderTypesPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Nombre del Tipo de Pedido</TableHead>
-                                <TableHead>
+                                <TableHead className="w-[100px]">Orden</TableHead>
+                                <TableHead className="w-[100px]">
                                     <span className="sr-only">Acciones</span>
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {orderTypes.map(orderType => (
+                            {orderTypes.map((orderType, index) => (
                                 <TableRow key={orderType.id}>
                                     <TableCell>{orderType.name}</TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleMove(index, 'up')} disabled={index === 0}>
+                                                <ArrowUp className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleMove(index, 'down')} disabled={index === orderTypes.length - 1}>
+                                                <ArrowDown className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
                                     <TableCell>
                                         <div className="flex justify-end">
                                             <DropdownMenu>

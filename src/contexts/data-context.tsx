@@ -14,7 +14,8 @@ import {
     deleteDoc, 
     Timestamp,
     query,
-    orderBy
+    orderBy,
+    writeBatch
 } from "firebase/firestore";
 import { 
     onAuthStateChanged, 
@@ -50,13 +51,14 @@ type DataContextType = {
   addOrderType: (name: string) => Promise<void>;
   updateOrderType: (id: string, name: string) => Promise<void>;
   deleteOrderType: (id: string) => Promise<void>;
+  updateOrderTypesOrder: (reorderedTypes: OrderType[]) => Promise<void>;
 
   users: UserWithId[];
   updateUser: (id: string, user: Omit<UserWithId, 'id'>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
 
   orders: Order[];
-  addOrder: (order: Omit<Order, 'id' | 'enteredBy'>) => Promise<void>;
+  addOrder: (order: Omit<Order, 'id' | 'enteredBy'>, newDriver?: Omit<Driver, 'id'>) => Promise<void>;
   updateOrder: (id: string, order: Omit<Order, 'id' | 'enteredBy'>) => Promise<void>;
   deleteOrder: (id: string) => Promise<void>;
 
@@ -118,10 +120,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     React.useEffect(() => {
         // We start listeners regardless of user state to get `users` list for the login page logic
+        const qOrderTypes = query(collection(db, "orderTypes"), orderBy("position"));
+        
         const unsubscribers = [
             onSnapshot(collection(db, "brands"), (snapshot) => setBrands(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Brand)))),
             onSnapshot(collection(db, "fleets"), (snapshot) => setFleets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fleet)))),
-            onSnapshot(collection(db, "orderTypes"), (snapshot) => setOrderTypes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderType)))),
+            onSnapshot(qOrderTypes, (snapshot) => setOrderTypes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderType)))),
             onSnapshot(collection(db, "users"), (snapshot) => {
                 setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserWithId)))
                 // This check is important for the login page logic to create the first admin
@@ -255,20 +259,49 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const deleteFleet = (id: string) => deleteItem('fleets', id);
 
     // Order Type Management
-    const addOrderType = (name: string) => addDoc(collection(db, 'orderTypes'), { name }).then(() => {});
+    const addOrderType = (name: string) => {
+        const maxPosition = orderTypes.reduce((max, type) => Math.max(max, type.position), -1);
+        const newOrderType = { name, position: maxPosition + 1 };
+        return addDoc(collection(db, 'orderTypes'), newOrderType).then(() => {});
+    };
     const updateOrderType = (id: string, name: string) => updateItem('orderTypes', id, { name });
     const deleteOrderType = (id: string) => deleteItem('orderTypes', id);
-    
+    const updateOrderTypesOrder = async (reorderedTypes: OrderType[]) => {
+        const batch = writeBatch(db);
+        reorderedTypes.forEach((type, index) => {
+            const docRef = doc(db, 'orderTypes', type.id);
+            batch.update(docRef, { position: index });
+        });
+        await batch.commit();
+    };
+
     // User Management
     const updateUser = (id: string, userData: Omit<UserWithId, 'id'>) => updateItem('users', id, userData);
     const deleteUser = (id: string) => deleteItem('users', id);
 
     // Order Management
-    const addOrder = (orderData: Omit<Order, 'id' | 'enteredBy'>) => {
-        if (!user) return Promise.reject("No user logged in");
-        const newOrder = { ...orderData, enteredBy: user.name };
-        return addItem('orders', newOrder).then(() => {});
+    const addOrder = async (orderData: Omit<Order, 'id' | 'enteredBy'>, newDriverData?: Omit<Driver, 'id'>) => {
+        if (!user) throw new Error("No user logged in");
+        let finalOrderData: Omit<Order, 'id'>;
+
+        if (newDriverData) {
+            const driverId = await addDriver(newDriverData);
+            if (!driverId) {
+                toast({ variant: "destructive", title: "Error", description: "No se pudo crear el nuevo motorista." });
+                throw new Error("Failed to create new driver.");
+            }
+             await addAuditLog({
+                user: user.name,
+                role: user.role,
+                action: 'Created Driver',
+                details: `Driver "${newDriverData.name}" created`,
+            });
+        }
+        
+        finalOrderData = { ...orderData, enteredBy: user.name };
+        await addItem('orders', finalOrderData);
     }
+
     const updateOrder = (id: string, orderData: Omit<Order, 'id' | 'enteredBy'>) => {
         if (!user) return Promise.reject("No user logged in");
         const orderToUpdate = orders.find(o => o.id === id);
@@ -296,7 +329,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         user, role, login, logout, createUser,
         brands, addBrand, updateBrand, deleteBrand,
         fleets, addFleet, updateFleet, deleteFleet,
-        orderTypes, addOrderType, updateOrderType, deleteOrderType,
+        orderTypes, addOrderType, updateOrderType, deleteOrderType, updateOrderTypesOrder,
         users, updateUser, deleteUser,
         orders, addOrder, updateOrder, deleteOrder,
         drivers, addDriver,

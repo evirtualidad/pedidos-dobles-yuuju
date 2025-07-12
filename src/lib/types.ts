@@ -46,6 +46,7 @@ export type Brand = {
 export type OrderType = {
   id: string;
   name: string;
+  position: number;
 }
 
 export type Driver = {

@@ -59,7 +59,7 @@ type CreateOrderDialogProps = {
 
 export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, order }: CreateOrderDialogProps) {
   const { toast } = useToast();
-  const { user, role, brands, orderTypes, addAuditLog } = useData();
+  const { brands, orderTypes } = useData();
   const [isSelectDriverOpen, setIsSelectDriverOpen] = React.useState(false);
   const [newDriverData, setNewDriverData] = React.useState<Omit<Driver, 'id'> | null>(null);
 
@@ -81,7 +81,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
           observations: order.observations || "",
         });
       } else {
-        const defaultType = orderTypeNames.includes("Larga distancia") ? "Larga distancia" : "";
+        const defaultType = orderTypes.length > 0 ? orderTypes[0].name : "";
         form.reset({
           orderNumber: "",
           driver: "",
@@ -94,7 +94,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
         });
       }
     }
-  }, [isOpen, order, form, orderTypeNames]);
+  }, [isOpen, order, form, orderTypes]);
 
 
   function onSubmit(values: z.infer<typeof orderSchema>) {
