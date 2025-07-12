@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown, UserPlus } from "lucide-react"
+import { Check, ChevronsUpDown, PlusCircle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -19,34 +19,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Driver } from "@/lib/types"
+import type { Driver } from "@/lib/types"
 
 interface DriverComboboxProps {
     drivers: Driver[];
-    selectedDriverName: string;
+    initialDriverName: string;
     onSelectDriver: (driverName: string) => void;
     onCreateDriver: (driverName: string) => void;
 }
 
-export function DriverCombobox({ drivers, selectedDriverName, onSelectDriver, onCreateDriver }: DriverComboboxProps) {
+export function DriverCombobox({ drivers, initialDriverName, onSelectDriver, onCreateDriver }: DriverComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [searchValue, setSearchValue] = React.useState("")
+  const [value, setValue] = React.useState(initialDriverName)
 
-  const handleSelect = (driverName: string) => {
-    onSelectDriver(driverName)
-    setOpen(false)
-    setSearchValue("")
-  }
-
-  const handleCreate = () => {
-    onCreateDriver(searchValue);
-    setOpen(false);
-    setSearchValue("");
-  }
-  
-  const filteredDrivers = drivers.filter(driver =>
-    driver.name.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  React.useEffect(() => {
+    setValue(initialDriverName)
+  }, [initialDriverName])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -57,30 +45,32 @@ export function DriverCombobox({ drivers, selectedDriverName, onSelectDriver, on
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {selectedDriverName
-            ? drivers.find((driver) => driver.name === selectedDriverName)?.name
+          {value
+            ? drivers.find((driver) => driver.name.toLowerCase() === value.toLowerCase())?.name
             : "Seleccione un motorista..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput 
-            placeholder="Buscar motorista..."
-            value={searchValue}
-            onValueChange={setSearchValue}
-          />
+          <CommandInput placeholder="Buscar motorista..." />
           <CommandList>
             <CommandEmpty>
                 <div className="p-2 text-sm text-center">
-                    No se encontró el motorista.
+                    <p>No se encontró el motorista.</p>
                      <Button
                         variant="link"
                         className="p-1 h-auto"
-                        onClick={handleCreate}
+                        onClick={() => {
+                            const input = document.querySelector('input[cmdk-input]') as HTMLInputElement;
+                            if (input && input.value) {
+                                onCreateDriver(input.value)
+                            }
+                            setOpen(false)
+                        }}
                      >
-                        <UserPlus className="mr-2 h-4 w-4"/>
-                        Crear "{searchValue}"
+                        <PlusCircle className="mr-2 h-4 w-4"/>
+                        Crear nuevo motorista
                     </Button>
                 </div>
             </CommandEmpty>
@@ -90,13 +80,16 @@ export function DriverCombobox({ drivers, selectedDriverName, onSelectDriver, on
                   key={driver.id}
                   value={driver.name}
                   onSelect={(currentValue) => {
-                    handleSelect(currentValue === selectedDriverName ? "" : currentValue)
+                    const newValue = currentValue.toLowerCase() === value.toLowerCase() ? "" : currentValue;
+                    setValue(newValue)
+                    onSelectDriver(newValue)
+                    setOpen(false)
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selectedDriverName === driver.name ? "opacity-100" : "opacity-0"
+                      value.toLowerCase() === driver.name.toLowerCase() ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {driver.name}

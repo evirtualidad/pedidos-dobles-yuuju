@@ -72,6 +72,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   });
 
   React.useEffect(() => {
+    // Only reset form when dialog opens or the specific order changes
     if (isOpen) {
       if (order) {
         form.reset({
@@ -92,7 +93,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
         });
       }
     }
-  }, [isOpen, order, form, brandNames, orderTypeNames]);
+  }, [isOpen, order]);
 
 
   function onSubmit(values: z.infer<typeof orderSchema>) {
@@ -129,7 +130,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   }
 
   const handleDriverSelect = (driverName: string) => {
-    const selectedDriver = drivers.find(d => d.name === driverName);
+    const selectedDriver = drivers.find(d => d.name.toLowerCase() === driverName.toLowerCase());
     if(selectedDriver) {
         form.setValue("driver", selectedDriver.name, { shouldValidate: true });
         form.setValue("fleet", selectedDriver.fleet, { shouldValidate: true });
@@ -246,7 +247,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                               <FormLabel>Nombre Motorista</FormLabel>
                               <DriverCombobox
                                 drivers={drivers}
-                                selectedDriverName={field.value}
+                                initialDriverName={field.value}
                                 onSelectDriver={handleDriverSelect}
                                 onCreateDriver={handleCreateDriver}
                               />
