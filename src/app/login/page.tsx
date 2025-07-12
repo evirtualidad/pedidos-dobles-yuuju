@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 import { Truck } from "lucide-react";
 import { useData } from "@/contexts/data-context";
 
@@ -35,21 +34,20 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const { toast } = useToast();
-  const router = useRouter();
   const { login } = useData();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "admin@example.com",
-      password: "password",
+      email: "",
+      password: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof loginSchema>) => {
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
-    const success = login(values.email, values.password);
+    const success = await login(values.email, values.password);
     
     if (!success) {
       toast({

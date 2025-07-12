@@ -3,15 +3,36 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { 
+    collection, 
+    onSnapshot, 
+    doc, 
+    getDoc, 
+    setDoc, 
+    addDoc, 
+    updateDoc, 
+    deleteDoc, 
+    Timestamp,
+    query,
+    orderBy
+} from "firebase/firestore";
+import { 
+    onAuthStateChanged, 
+    signInWithEmailAndPassword, 
+    signOut,
+    createUserWithEmailAndPassword,
+    type User as FirebaseUser
+} from "firebase/auth";
+
 import type { Brand, Fleet, OrderType, UserWithId, Order, AuditLog, Role } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { MOCK_DATA } from "@/lib/mock-data";
+import { db, auth } from "@/lib/firebase";
 
 type DataContextType = {
   user: UserWithId | null;
   role: Role | null;
-  login: (email: string, pass: string) => boolean;
+  login: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
   
   brands: Brand[];
@@ -30,7 +51,7 @@ type DataContextType = {
   deleteOrderType: (id: string) => Promise<void>;
 
   users: UserWithId[];
-  addUser: (user: Omit<UserWithId, 'id'>) => Promise<void>;
+  addUser: (user: Omit<UserWithId, 'id'>, tempPass: string) => Promise<void>;
   updateUser: (id: string, user: Omit<UserWithId, 'id'>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
 
@@ -63,6 +84,18 @@ function LoadingScreen() {
     );
 }
 
+// Helper to convert Firestore Timestamps to Dates in fetched data
+function mapTimestampToDate<T>(data: T): T {
+    if (data && typeof data === 'object') {
+        for (const key in data) {
+            if (data[key] instanceof Timestamp) {
+                (data as any)[key] = (data[key] as Timestamp).toDate();
+            }
+        }
+    }
+    return data;
+}
+
 export function DataProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
@@ -70,119 +103,148 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = React.useState<UserWithId | null>(null);
     const [role, setRole] = React.useState<Role | null>(null);
     
-    const [brands, setBrands] = React.useState<Brand[]>(MOCK_DATA.brands);
-    const [fleets, setFleets] = React.useState<Fleet[]>(MOCK_DATA.fleets);
-    const [orderTypes, setOrderTypes] = React.useState<OrderType[]>(MOCK_DATA.orderTypes);
-    const [users, setUsers] = React.useState<UserWithId[]>(MOCK_DATA.users);
-    const [orders, setOrders] = React.useState<Order[]>(MOCK_DATA.orders);
-    const [auditLogs, setAuditLogs] = React.useState<AuditLog[]>(MOCK_DATA.auditLogs);
+    const [brands, setBrands] = React.useState<Brand[]>([]);
+    const [fleets, setFleets] = React.useState<Fleet[]>([]);
+    const [orderTypes, setOrderTypes] = React.useState<OrderType[]>([]);
+    const [users, setUsers] = React.useState<UserWithId[]>([]);
+    const [orders, setOrders] = React.useState<Order[]>([]);
+    const [auditLogs, setAuditLogs] = React.useState<AuditLog[]>([]);
     const [loading, setLoading] = React.useState(true);
 
-    const login = (email: string, pass: string) => {
-      const foundUser = users.find(u => u.email === email);
-      if(foundUser) {
-        // In a real app, you'd check the password
-        setUser(foundUser);
-        setRole(foundUser.role);
-        router.push('/');
-        return true;
-      }
-      return false;
+    React.useEffect(() => {
+        const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                const userDocRef = doc(db, "users", firebaseUser.uid);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (userDocSnap.exists()) {
+                    const userData = { id: userDocSnap.id, ...userDocSnap.data() } as UserWithId;
+                    setUser(userData);
+                    setRole(userData.role);
+                } else {
+                    console.log("User profile not found in Firestore, creating one...");
+                    // First user to sign in becomes an admin
+                    const newUserProfile: UserWithId = {
+                        id: firebaseUser.uid,
+                        name: firebaseUser.displayName || firebaseUser.email || 'New User',
+                        email: firebaseUser.email!,
+                        role: 'Admin',
+                    };
+                    await setDoc(userDocRef, newUserProfile);
+                    setUser(newUserProfile);
+                    setRole(newUserProfile.role);
+                    toast({
+                        title: "Bienvenido, Admin",
+                        description: "Tu perfil de administrador ha sido creado.",
+                    });
+                }
+
+                // Redirect if they are on the login page
+                if (pathname === '/login') {
+                    router.push('/');
+                }
+            } else {
+                setUser(null);
+                setRole(null);
+                if (pathname !== '/login') {
+                    router.push('/login');
+                }
+            }
+            setLoading(false);
+        });
+        return () => unsubscribeAuth();
+    }, [pathname, router]);
+
+    // Firestore listeners
+    React.useEffect(() => {
+        if (!user) return; // Don't fetch data if no user
+        const unsubscribers = [
+            onSnapshot(collection(db, "brands"), (snapshot) => setBrands(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Brand)))),
+            onSnapshot(collection(db, "fleets"), (snapshot) => setFleets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fleet)))),
+            onSnapshot(collection(db, "orderTypes"), (snapshot) => setOrderTypes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderType)))),
+            onSnapshot(collection(db, "users"), (snapshot) => setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserWithId)))),
+            onSnapshot(query(collection(db, "orders"), orderBy("date", "desc")), (snapshot) => setOrders(snapshot.docs.map(doc => mapTimestampToDate({ id: doc.id, ...doc.data() } as Order)))),
+            onSnapshot(query(collection(db, "auditLogs"), orderBy("timestamp", "desc")), (snapshot) => setAuditLogs(snapshot.docs.map(doc => mapTimestampToDate({ id: doc.id, ...doc.data() } as AuditLog)))),
+        ];
+        return () => unsubscribers.forEach(unsub => unsub());
+    }, [user]);
+
+    const login = async (email: string, pass: string) => {
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+            return true;
+        } catch (error) {
+            console.error("Login failed:", error);
+            return false;
+        }
     }
 
-    const logout = () => {
-      setUser(null);
-      setRole(null);
-      router.push('/login');
+    const logout = async () => {
+        await signOut(auth);
+        setUser(null);
+        setRole(null);
+        router.push('/login');
     }
-
-    React.useEffect(() => {
-        const sessionUser = sessionStorage.getItem('fleet-user');
-        if (sessionUser) {
-            const parsedUser = JSON.parse(sessionUser);
-            setUser(parsedUser);
-            setRole(parsedUser.role);
-        }
-        setLoading(false);
-    }, []);
-
-    React.useEffect(() => {
-        if (loading) return;
-
-        if (!user && pathname !== '/login') {
-            router.push('/login');
-        } else if (user && pathname === '/login') {
-            router.push('/');
-        }
-        
-        if (user) {
-            sessionStorage.setItem('fleet-user', JSON.stringify(user));
-        } else {
-            sessionStorage.removeItem('fleet-user');
-        }
-
-    }, [user, pathname, router, loading]);
 
     const addAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>) => {
-        const newLog: AuditLog = {
+        const newLog = {
             ...log,
-            id: `log-${Date.now()}`,
             timestamp: new Date(),
         };
-        setAuditLogs(prev => [newLog, ...prev]);
+        await addDoc(collection(db, 'auditLogs'), newLog);
     }
-
-    // Generic CRUD functions
-    const addItem = async <T extends {id: string}>(setter: React.Dispatch<React.SetStateAction<T[]>>, item: Omit<T, 'id'>) => {
-        const newItem = { ...item, id: `${Date.now()}` } as T;
-        setter(prev => [newItem, ...prev]);
-        return Promise.resolve();
+    
+    // Generic CRUD Functions for Firestore
+    const addItem = async <T>(collectionName: string, item: T) => {
+        await addDoc(collection(db, collectionName), item);
+    };
+    
+    const updateItem = async <T>(collectionName: string, id: string, item: T) => {
+        await updateDoc(doc(db, collectionName, id), item as any);
     };
 
-    const updateItem = async <T extends {id: string}>(setter: React.Dispatch<React.SetStateAction<T[]>>, id: string, item: Omit<T, 'id'>) => {
-        setter(prev => prev.map(i => i.id === id ? { ...item, id } as T : i));
-        return Promise.resolve();
-    };
-
-    const deleteItem = async <T extends {id: string}>(setter: React.Dispatch<React.SetStateAction<T[]>>, id: string) => {
-        setter(prev => prev.filter(i => i.id !== id));
-        return Promise.resolve();
+    const deleteItem = async (collectionName: string, id: string) => {
+        await deleteDoc(doc(db, collectionName, id));
     };
 
     // Brand Management
-    const addBrand = (name: string) => addItem(setBrands, { name });
-    const updateBrand = (id: string, name: string) => updateItem(setBrands, id, { name });
-    const deleteBrand = (id: string) => deleteItem(setBrands, id);
+    const addBrand = (name: string) => addItem('brands', { name });
+    const updateBrand = (id: string, name: string) => updateItem('brands', id, { name });
+    const deleteBrand = (id: string) => deleteItem('brands', id);
 
     // Fleet Management
-    const addFleet = (name: string) => addItem(setFleets, { name });
-    const updateFleet = (id: string, name: string) => updateItem(setFleets, id, { name });
-    const deleteFleet = (id: string) => deleteItem(setFleets, id);
+    const addFleet = (name: string) => addItem('fleets', { name });
+    const updateFleet = (id: string, name: string) => updateItem('fleets', id, { name });
+    const deleteFleet = (id: string) => deleteItem('fleets', id);
 
     // Order Type Management
-    const addOrderType = (name: string) => addItem(setOrderTypes, { name });
-    const updateOrderType = (id: string, name: string) => updateItem(setOrderTypes, id, { name });
-    const deleteOrderType = (id: string) => deleteItem(setOrderTypes, id);
-
+    const addOrderType = (name: string) => addItem('orderTypes', { name });
+    const updateOrderType = (id: string, name: string) => updateItem('orderTypes', id, { name });
+    const deleteOrderType = (id: string) => deleteItem('orderTypes', id);
+    
     // User Management
-    const addUser = (user: Omit<UserWithId, 'id'>) => addItem(setUsers, user);
-    const updateUser = (id: string, user: Omit<UserWithId, 'id'>) => updateItem(setUsers, id, user);
-    const deleteUser = (id: string) => deleteItem(setUsers, id);
+    const addUser = async (userData: Omit<UserWithId, 'id'>, tempPass: string) => {
+        // This is complex, will be handled in the component to get the UID
+        // For now, this is a placeholder. The actual logic is in users/page.tsx
+        return Promise.resolve();
+    };
+    const updateUser = (id: string, userData: Omit<UserWithId, 'id'>) => updateItem('users', id, userData);
+    const deleteUser = (id: string) => deleteItem('users', id);
 
     // Order Management
-    const addOrder = (order: Omit<Order, 'id' | 'enteredBy'>) => {
-      if (!user) return Promise.reject("No user logged in");
-      const newOrderWithUser = { ...order, enteredBy: user.name };
-      return addItem(setOrders, newOrderWithUser as Omit<Order, 'id'>);
+    const addOrder = (orderData: Omit<Order, 'id' | 'enteredBy'>) => {
+        if (!user) return Promise.reject("No user logged in");
+        const newOrder = { ...orderData, enteredBy: user.name };
+        return addItem('orders', newOrder);
     }
     const updateOrder = (id: string, orderData: Omit<Order, 'id' | 'enteredBy'>) => {
         if (!user) return Promise.reject("No user logged in");
         const orderToUpdate = orders.find(o => o.id === id);
         if (!orderToUpdate) return Promise.reject("Order not found");
-        const updatedOrderWithUser = { ...orderData, enteredBy: orderToUpdate.enteredBy };
-        return updateItem(setOrders, id, updatedOrderWithUser as Omit<Order, 'id'>);
+        const updatedOrder = { ...orderData, enteredBy: orderToUpdate.enteredBy };
+        return updateItem('orders', id, updatedOrder);
     }
-    const deleteOrder = (id: string) => deleteItem(setOrders, id);
+    const deleteOrder = (id: string) => deleteItem('orders', id);
 
     if (loading) {
         return <LoadingScreen />;
@@ -192,30 +254,26 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         return <LoadingScreen />;
     }
 
-    if (!user && pathname === '/login') {
-        return (
-            <DataContext.Provider value={{ login } as any}>
-                {children}
-            </DataContext.Provider>
-        );
-    }
-    
     if (user && pathname === '/login') {
+        // Already handled by useEffect, but this is a fallback
+        router.push('/');
         return <LoadingScreen />;
     }
 
+    const contextValue: DataContextType = { 
+        user, role, login, logout,
+        brands, addBrand, updateBrand, deleteBrand,
+        fleets, addFleet, updateFleet, deleteFleet,
+        orderTypes, addOrderType, updateOrderType, deleteOrderType,
+        users, addUser, updateUser, deleteUser,
+        orders, addOrder, updateOrder, deleteOrder,
+        auditLogs, addAuditLog,
+        toast,
+        loading
+    };
+
     return (
-        <DataContext.Provider value={{ 
-            user, role, login, logout,
-            brands, addBrand, updateBrand, deleteBrand,
-            fleets, addFleet, updateFleet, deleteFleet,
-            orderTypes, addOrderType, updateOrderType, deleteOrderType,
-            users, addUser, updateUser, deleteUser,
-            orders, addOrder, updateOrder, deleteOrder,
-            auditLogs, addAuditLog,
-            toast,
-            loading
-        }}>
+        <DataContext.Provider value={contextValue}>
             {children}
         </DataContext.Provider>
     );

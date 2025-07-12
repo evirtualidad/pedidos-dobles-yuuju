@@ -13,25 +13,50 @@ import { DeleteUserDialog } from "@/components/admin/delete-user-dialog";
 import type { UserWithId } from "@/lib/types";
 import { useData } from "@/contexts/data-context";
 import { useToast } from "@/hooks/use-toast";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+
 
 export default function AdminUsersPage() {
-    const { users, addUser, updateUser, deleteUser, fleets } = useData();
+    const { users, updateUser, deleteUser, fleets } = useData();
     const { toast } = useToast();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState<UserWithId | null>(null);
 
     const handleAddUser = async (userData: Omit<UserWithId, 'id'>) => {
-        const existingUser = users.find(u => u.email === userData.email);
-        if (existingUser) {
+        try {
+            // Step 1: Create user in Firebase Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, userData.email, "password"); // Using a default password
+            const firebaseUser = userCredential.user;
+
+            // Step 2: Create user profile in Firestore with the UID from Auth
+            const userProfile: Omit<UserWithId, 'id'> = {
+                name: userData.name,
+                email: userData.email,
+                role: userData.role,
+            };
+            if(userData.role === 'Fleet Supervisor' && userData.fleet) {
+                userProfile.fleet = userData.fleet
+            }
+
+            await setDoc(doc(db, "users", firebaseUser.uid), userProfile);
+            
             toast({
+                title: "Usuario Creado",
+                description: `El usuario "${userData.name}" ha sido creado exitosamente.`,
+            });
+
+        } catch (error: any) {
+             toast({
                 variant: "destructive",
                 title: "Error al crear usuario",
-                description: "El correo electrónico ya está en uso por otro usuario.",
+                description: error.code === 'auth/email-already-in-use' 
+                    ? "El correo electrónico ya está en uso."
+                    : error.message,
             });
-            return;
         }
-        await addUser(userData);
     };
 
     const handleUpdateUser = async (id: string, user: Omit<UserWithId, 'id'>) => {
@@ -41,12 +66,14 @@ export default function AdminUsersPage() {
 
     const handleDeleteUser = async () => {
         if (selectedUser) {
+            // Note: This only deletes from Firestore. Deleting from Firebase Auth is a protected
+            // operation that should be handled by a backend function for security reasons.
             await deleteUser(selectedUser.id);
             setIsDeleteDialogOpen(false);
             setSelectedUser(null);
             toast({
                 title: "Usuario Eliminado",
-                description: `El perfil de "${selectedUser.name}" ha sido eliminado.`,
+                description: `El perfil de "${selectedUser.name}" ha sido eliminado de Firestore.`,
             });
         }
     };
