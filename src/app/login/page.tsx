@@ -50,7 +50,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      // The DataContext will handle redirection
+      // The DataContext will handle redirection on successful login
     } catch (error: any) {
       console.error("Login failed:", error);
       toast({
