@@ -20,6 +20,29 @@ interface OrdersByBrandChartProps {
   orders: Order[]
 }
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  if (!percent || percent === 0) {
+    return null;
+  }
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="white"
+      textAnchor="middle"
+      dominantBaseline="central"
+      className="text-xs font-bold"
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
 export function OrdersByBrandChart({ orders }: OrdersByBrandChartProps) {
     const { role } = useRole();
     const { brands } = useData();
@@ -68,10 +91,12 @@ export function OrdersByBrandChart({ orders }: OrdersByBrandChartProps) {
             data={chartData}
             dataKey="total"
             nameKey="name"
+            labelLine={false}
+            label={renderCustomizedLabel}
         />
         <ChartLegend
-            content={<ChartLegendContent nameKey="name" />}
-            className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+            content={<ChartLegendContent nameKey="name" className="[&>*]:justify-end"/>}
+            className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4"
         />
         </PieChart>
     </ChartContainer>
