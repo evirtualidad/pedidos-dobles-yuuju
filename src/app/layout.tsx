@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { DataProvider } from '@/contexts/data-context';
 
 export const metadata: Metadata = {
-  title: 'Fleet Command Center',
+  title: 'Pedidos Dobles Yuuju!',
   description: 'Manage your fleet with ease.',
 };
 

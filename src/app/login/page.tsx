@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Truck } from "lucide-react";
+import { Bike } from "lucide-react";
 import { useData } from "@/contexts/data-context";
 
 
@@ -90,8 +90,8 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-2 mb-4">
-                 <Truck className="h-8 w-8 text-primary" />
-                 <h1 className="text-2xl font-bold font-headline">Fleet Command</h1>
+                 <Bike className="h-8 w-8 text-primary" />
+                 <h1 className="text-2xl font-bold font-headline">Pedidos Dobles Yuuju!</h1>
             </div>
           <CardTitle className="text-2xl">{noUsersExist ? "Crear Cuenta de Admin" : "Iniciar Sesión"}</CardTitle>
           <CardDescription>

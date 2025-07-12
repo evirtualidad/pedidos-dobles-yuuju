@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Truck, LogOut, Menu } from "lucide-react";
+import { Bike, LogOut, Menu } from "lucide-react";
 import { MainNav } from "@/components/main-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -64,8 +64,8 @@ export function Header() {
                             href="/"
                             className="flex items-center gap-2 text-lg font-semibold mb-4 pl-6"
                         >
-                            <Truck className="h-6 w-6 text-primary" />
-                            <span>Fleet Command</span>
+                            <Bike className="h-6 w-6 text-primary" />
+                            <span>Pedidos Dobles Yuuju!</span>
                         </Link>
                     </SheetClose>
                      <nav className="grid gap-2 text-lg font-medium">
@@ -76,9 +76,9 @@ export function Header() {
         </div>
         <div className="mr-4 hidden md:flex items-center">
             <Link href="/" className="mr-6 flex items-center space-x-2">
-                <Truck className="h-6 w-6 text-primary" />
+                <Bike className="h-6 w-6 text-primary" />
                 <span className="hidden font-bold sm:inline-block font-headline">
-                Fleet Command
+                Pedidos Dobles Yuuju!
                 </span>
             </Link>
             <nav className="flex items-center gap-2 text-sm">
@@ -88,8 +88,8 @@ export function Header() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <Link href="/" className="md:hidden">
-              <Truck className="h-6 w-6 text-primary" />
-              <span className="sr-only">Fleet Command</span>
+              <Bike className="h-6 w-6 text-primary" />
+              <span className="sr-only">Pedidos Dobles Yuuju!</span>
           </Link>
           <div className="w-full flex-1 md:w-auto md:flex-none">
             {/* Can add a search bar here if needed */}
@@ -100,7 +100,6 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="" alt={user?.name || ''} />
                     <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -130,7 +129,3 @@ export function Header() {
     </header>
   );
 }
-
-    
-
-    

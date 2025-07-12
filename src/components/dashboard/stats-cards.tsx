@@ -1,7 +1,7 @@
 
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck, Users, Award, Tag } from "lucide-react";
+import { Bike, Users, Award, Tag } from "lucide-react";
 import { Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -45,7 +45,7 @@ export function StatsCards({ orders }: StatsCardsProps) {
             <Card className={cn(cardClasses, "border-t-chart-1")}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Órdenes</CardTitle>
-                    <Truck className="h-4 w-4 text-muted-foreground" />
+                    <Bike className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{totalOrders}</div>
