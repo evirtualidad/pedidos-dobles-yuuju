@@ -3,7 +3,8 @@
 
 import * as React from "react"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
-import { format, subMonths, startOfMonth, eachMonthOfInterval, endOfMonth } from "date-fns"
+import { format, subWeeks, startOfWeek, eachWeekOfInterval, endOfWeek, endOfDay } from "date-fns"
+import { es } from "date-fns/locale"
 
 import {
   ChartContainer,
@@ -29,26 +30,29 @@ export function OrdersChart({ orders }: OrdersChartProps) {
     const { role } = useRole();
 
     const chartData = React.useMemo(() => {
-        const twelveMonthsAgo = subMonths(new Date(), 11);
+        const twelveWeeksAgo = subWeeks(new Date(), 11);
         const today = new Date();
-        const interval = { start: startOfMonth(twelveMonthsAgo), end: endOfMonth(today) };
-        const monthsInInterval = eachMonthOfInterval(interval);
+        const interval = { start: startOfWeek(twelveWeeksAgo, { locale: es }), end: endOfWeek(today, { locale: es }) };
+        const weeksInInterval = eachWeekOfInterval(interval, { locale: es });
 
-        const monthlyData = monthsInInterval.map(monthDate => ({
-            month: format(monthDate, "MMM"),
-            year: format(monthDate, "yyyy"),
+        const weeklyData = weeksInInterval.map(weekDate => ({
+            week: format(weekDate, "d MMM", { locale: es }),
             total: 0
         }));
 
         orders.forEach(order => {
-            const monthStr = format(order.date, "MMM");
-            const yearStr = format(order.date, "yyyy");
-            const monthEntry = monthlyData.find(m => m.month === monthStr && m.year === yearStr);
-            if (monthEntry) {
-                monthEntry.total += 1;
+            if (order.date < interval.start || order.date > interval.end) return;
+
+            const weekStart = startOfWeek(order.date, { locale: es });
+            const weekKey = format(weekStart, "d MMM", { locale: es });
+            
+            const weekEntry = weeklyData.find(w => w.week === weekKey);
+            if (weekEntry) {
+                weekEntry.total += 1;
             }
         });
-        return monthlyData;
+        
+        return weeklyData;
     }, [orders]);
 
     return (
@@ -56,10 +60,11 @@ export function OrdersChart({ orders }: OrdersChartProps) {
             <BarChart accessibilityLayer data={chartData}>
                 <CartesianGrid vertical={false} />
                 <XAxis
-                    dataKey="month"
+                    dataKey="week"
                     tickLine={false}
                     tickMargin={10}
                     axisLine={false}
+                    className="text-xs"
                 />
                  <YAxis 
                     tickLine={false}

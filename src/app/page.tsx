@@ -87,8 +87,8 @@ function DashboardPageContent() {
             </Card>
         </div>
         
-        {role === 'Admin' && (
-             <div className="grid gap-4 md:gap-8 lg:grid-cols-1">
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
+            {role === 'Admin' && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Órdenes por Flota</CardTitle>
@@ -98,19 +98,17 @@ function DashboardPageContent() {
                         <OrdersByFleetChart orders={filteredOrders} />
                     </CardContent>
                 </Card>
-            </div>
-        )}
+            )}
 
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-1">
-          <Card>
-               <CardHeader>
-                  <CardTitle>Resumen Mensual de Órdenes</CardTitle>
-                  <CardDescription>Un resumen de las órdenes filtradas por mes.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <OrdersChart orders={filteredOrders} />
-              </CardContent>
-          </Card>
+            <Card className={role !== 'Admin' ? 'lg:col-span-2' : ''}>
+                 <CardHeader>
+                    <CardTitle>Resumen Semanal de Órdenes</CardTitle>
+                    <CardDescription>Un resumen de las órdenes filtradas por semana.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <OrdersChart orders={filteredOrders} />
+                </CardContent>
+            </Card>
         </div>
       </main>
     </div>
