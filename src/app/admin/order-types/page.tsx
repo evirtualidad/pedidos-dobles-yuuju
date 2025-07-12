@@ -17,7 +17,7 @@ import { useData } from "@/contexts/data-context";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminOrderTypesPage() {
-    const { user, role, orderTypes, orders, addOrderType, updateOrderType, deleteOrderType, addAuditLog, updateOrderTypesOrder } = useData();
+    const { orderTypes, orders, addOrderType, updateOrderType, deleteOrderType, updateOrderTypesOrder } = useData();
     const { toast } = useToast();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -46,30 +46,16 @@ export default function AdminOrderTypesPage() {
     };
 
     const handleAddOrderType = async (name: string) => {
-        if (!user || !role) return;
         await addOrderType(name);
-        await addAuditLog({
-            user: user.name,
-            role: role,
-            action: 'Created Order Type',
-            details: `Order Type "${name}" created`,
-        });
     };
 
     const handleUpdateOrderType = async (id: string, name: string) => {
-        if (!user || !role) return;
         await updateOrderType(id, name);
-        await addAuditLog({
-            user: user.name,
-            role: role,
-            action: 'Updated Order Type',
-            details: `Order Type "${name}" (ID: ${id}) updated`,
-        });
         setSelectedOrderType(null);
     };
 
     const handleDeleteOrderType = async () => {
-        if (selectedOrderType && user && role) {
+        if (selectedOrderType) {
             const isOrderTypeInUse = orders.some(order => order.type === selectedOrderType.name);
 
             if (isOrderTypeInUse) {
@@ -84,12 +70,6 @@ export default function AdminOrderTypesPage() {
             }
 
             await deleteOrderType(selectedOrderType.id);
-            await addAuditLog({
-                user: user.name,
-                role: role,
-                action: 'Deleted Order Type',
-                details: `Order Type "${selectedOrderType.name}" (ID: ${selectedOrderType.id}) deleted`,
-            });
             setIsDeleteDialogOpen(false);
             setSelectedOrderType(null);
         }

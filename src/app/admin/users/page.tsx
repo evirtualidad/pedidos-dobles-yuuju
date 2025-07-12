@@ -16,24 +16,17 @@ import { CreateDriverDialog } from "@/components/admin/create-driver-dialog";
 
 
 export default function AdminUsersPage() {
-    const { users, user: currentUser, role: currentRole, updateUser, deleteUser, fleets, addAuditLog, createUser, toast, addDriver, drivers } = useData();
+    const { users, currentUser, updateUser, deleteUser, fleets, createUser, toast, addDriver, drivers } = useData();
     const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = React.useState(false);
     const [isCreateDriverDialogOpen, setIsCreateDriverDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState<UserWithId | null>(null);
 
     const handleAddUser = async (userData: Omit<UserWithId, 'id'>) => {
-        if (!currentUser || !currentRole) return;
+        if (!currentUser) return;
         try {
             await createUser(userData.email, "password", userData.role, userData.name, userData.fleet);
             
-            await addAuditLog({
-                user: currentUser.name,
-                role: currentRole,
-                action: 'Created User',
-                details: `User "${userData.name}" (${userData.email}) created with role ${userData.role}`,
-            });
-
             toast({
                 title: "Usuario Creado",
                 description: `El usuario "${userData.name}" ha sido creado. La contraseña inicial es "password".`,
@@ -51,26 +44,14 @@ export default function AdminUsersPage() {
     };
 
     const handleUpdateUser = async (id: string, user: Omit<UserWithId, 'id'>) => {
-        if (!currentUser || !currentRole) return;
+        if (!currentUser) return;
         await updateUser(id, user);
-        await addAuditLog({
-            user: currentUser.name,
-            role: currentRole,
-            action: 'Updated User',
-            details: `User "${user.name}" (ID: ${id}) updated`,
-        });
         setSelectedUser(null);
     };
 
     const handleDeleteUser = async () => {
-        if (selectedUser && currentUser && currentRole) {
+        if (selectedUser && currentUser) {
             await deleteUser(selectedUser.id);
-            await addAuditLog({
-                user: currentUser.name,
-                role: currentRole,
-                action: 'Deleted User',
-                details: `User "${selectedUser.name}" (ID: ${selectedUser.id}) profile deleted from Firestore`,
-            });
             setIsDeleteDialogOpen(false);
             setSelectedUser(null);
             toast({
@@ -81,18 +62,12 @@ export default function AdminUsersPage() {
     };
     
     const handleAddDriver = async (driverData: Omit<Driver, 'id'>) => {
-        if (!currentUser || !currentRole) return;
+        if (!currentUser) return;
         const driverId = await addDriver(driverData);
         if (driverId) {
             toast({
                 title: "Motorista Creado",
                 description: `El motorista "${driverData.name}" ha sido creado exitosamente.`,
-            });
-            await addAuditLog({
-                user: currentUser.name,
-                role: currentRole,
-                action: 'Created Driver',
-                details: `Driver "${driverData.name}" created`,
             });
             setIsCreateDriverDialogOpen(false);
         } else {

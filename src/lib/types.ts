@@ -13,15 +13,6 @@ export type Order = {
   enteredBy: string; 
 };
 
-export type AuditLog = {
-  id: string;
-  user: string;
-  role: Role;
-  action: string;
-  timestamp: Date;
-  details: string;
-};
-
 export type Role = 'Admin' | 'Fleet Supervisor' | 'Data Entry';
 
 export type User = {

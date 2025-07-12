@@ -15,37 +15,23 @@ import { useData } from "@/contexts/data-context";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminFleetsPage() {
-    const { user, role, fleets, orders, addFleet, updateFleet, deleteFleet, addAuditLog } = useData();
+    const { fleets, orders, addFleet, updateFleet, deleteFleet } = useData();
     const { toast } = useToast();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedFleet, setSelectedFleet] = React.useState<Fleet | null>(null);
 
     const handleAddFleet = async (name: string) => {
-        if (!user || !role) return;
         await addFleet(name);
-        await addAuditLog({
-            user: user.name,
-            role: role,
-            action: 'Created Fleet',
-            details: `Fleet "${name}" created`,
-        });
     };
 
     const handleUpdateFleet = async (id: string, name: string) => {
-        if (!user || !role) return;
         await updateFleet(id, name);
-        await addAuditLog({
-            user: user.name,
-            role: role,
-            action: 'Updated Fleet',
-            details: `Fleet "${name}" (ID: ${id}) updated`,
-        });
         setSelectedFleet(null);
     };
 
     const handleDeleteFleet = async () => {
-        if (selectedFleet && user && role) {
+        if (selectedFleet) {
             const isFleetInUse = orders.some(order => order.fleet === selectedFleet.name);
 
             if (isFleetInUse) {
@@ -60,12 +46,6 @@ export default function AdminFleetsPage() {
             }
             
             await deleteFleet(selectedFleet.id);
-            await addAuditLog({
-                user: user.name,
-                role: role,
-                action: 'Deleted Fleet',
-                details: `Fleet "${selectedFleet.name}" (ID: ${selectedFleet.id}) deleted`,
-            });
             setIsDeleteDialogOpen(false);
             setSelectedFleet(null);
         }

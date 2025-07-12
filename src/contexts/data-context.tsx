@@ -26,7 +26,7 @@ import {
     type User as FirebaseUser
 } from "firebase/auth";
 
-import type { Brand, Fleet, OrderType, UserWithId, Order, AuditLog, Role, Driver } from "@/lib/types";
+import type { Brand, Fleet, OrderType, UserWithId, Order, Role, Driver } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { db, auth } from "@/lib/firebase";
@@ -66,12 +66,10 @@ type DataContextType = {
   drivers: Driver[];
   addDriver: (driver: Omit<Driver, 'id'>) => Promise<string | undefined>;
 
-  auditLogs: AuditLog[];
-  addAuditLog: (log: Omit<AuditLog, 'id' | 'timestamp'>) => Promise<void>;
-  
   toast: ({ ...props }: any) => void;
 
   loading: boolean;
+  currentUser: UserWithId | null;
 };
 
 const DataContext = React.createContext<DataContextType | undefined>(undefined);
@@ -114,7 +112,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const [orderTypes, setOrderTypes] = React.useState<OrderType[]>([]);
     const [users, setUsers] = React.useState<UserWithId[]>([]);
     const [orders, setOrders] = React.useState<Order[]>([]);
-    const [auditLogs, setAuditLogs] = React.useState<AuditLog[]>([]);
     const [drivers, setDrivers] = React.useState<Driver[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [initialAuthCheck, setInitialAuthCheck] = React.useState(false);
@@ -167,7 +164,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 }
             }),
             onSnapshot(query(collection(db, "orders"), orderBy("date", "desc")), (snapshot) => setOrders(snapshot.docs.map(doc => mapTimestampToDate({ id: doc.id, ...doc.data() } as Order)))),
-            onSnapshot(query(collection(db, "auditLogs"), orderBy("timestamp", "desc")), (snapshot) => setAuditLogs(snapshot.docs.map(doc => mapTimestampToDate({ id: doc.id, ...doc.data() } as AuditLog)))),
             onSnapshot(collection(db, "drivers"), (snapshot) => setDrivers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Driver)))),
         ];
 
@@ -257,14 +253,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
-    const addAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>) => {
-        const newLog = {
-            ...log,
-            timestamp: new Date(),
-        };
-        await addDoc(collection(db, 'auditLogs'), newLog);
-    }
-    
     const addItem = async <T extends object>(collectionName: string, item: T) => {
         const docRef = await addDoc(collection(db, collectionName), item);
         return docRef;
@@ -315,12 +303,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 toast({ variant: "destructive", title: "Error", description: "No se pudo crear el nuevo motorista." });
                 throw new Error("Failed to create new driver.");
             }
-             await addAuditLog({
-                user: user.name,
-                role: user.role,
-                action: 'Created Driver',
-                details: `Driver "${newDriverData.name}" created`,
-            });
         }
         
         finalOrderData = { ...orderData, enteredBy: user.name };
@@ -357,9 +339,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         users, updateUser, deleteUser,
         orders, addOrder, updateOrder, deleteOrder,
         drivers, addDriver,
-        auditLogs, addAuditLog,
         toast,
-        loading
+        loading,
+        currentUser: user,
     };
 
     return (

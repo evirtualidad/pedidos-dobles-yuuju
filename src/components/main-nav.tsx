@@ -14,7 +14,6 @@ export function MainNav({ isMobile = false, onLinkClick }: { isMobile?: boolean,
   const routes = [
     { href: '/', label: 'Dashboard', active: pathname === '/' },
     { href: '/orders', label: 'Órdenes', active: pathname.startsWith('/orders') },
-    { href: '/audit', label: 'Audit Log', active: pathname === '/audit', roles: ['Admin'] },
     { href: '/admin', label: 'Gestión', active: pathname.startsWith('/admin'), roles: ['Admin']}
   ].filter(route => !route.roles || (role && route.roles.includes(role)));
 

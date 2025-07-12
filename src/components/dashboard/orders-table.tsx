@@ -62,7 +62,7 @@ import { useData } from "@/contexts/data-context"
 import Link from "next/link"
 
 export function OrdersTable() {
-  const { role, user, toast, brands, fleets, orders, addOrder, updateOrder, deleteOrder, addAuditLog, addDriver } = useData();
+  const { role, user, toast, brands, fleets, orders, addOrder, updateOrder, deleteOrder, addDriver } = useData();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -139,7 +139,7 @@ export function OrdersTable() {
   }, [filteredOrders, pagination]);
 
   const handleAddOrder = async (newOrder: Omit<Order, 'id' | 'enteredBy'>, newDriverData?: Omit<Driver, 'id'>) => {
-    if(!user || !role) return;
+    if(!user) return;
 
     let finalOrderData = { ...newOrder };
 
@@ -149,46 +149,21 @@ export function OrdersTable() {
             toast({ variant: "destructive", title: "Error", description: "No se pudo crear el nuevo motorista." });
             return;
         }
-        await addAuditLog({
-            user: user.name,
-            role: role,
-            action: 'Created Driver',
-            details: `Driver "${newDriverData.name}" created`,
-        });
-        // The form already has the correct name and fleet, so we just proceed
     }
 
     await addOrder(finalOrderData);
-    await addAuditLog({
-        user: user.name,
-        role: role,
-        action: 'Created Order',
-        details: `Order ${finalOrderData.orderNumber} created`,
-    });
   };
   
   const handleUpdateOrder = async (updatedOrderData: Omit<Order, 'id' | 'enteredBy'>) => {
-      if(!selectedOrder || !user || !role) return;
+      if(!selectedOrder || !user) return;
       await updateOrder(selectedOrder.id, updatedOrderData);
-      await addAuditLog({
-          user: user.name,
-          role: role,
-          action: 'Updated Order',
-          details: `Order ${updatedOrderData.orderNumber} updated`,
-      });
       setSelectedOrder(null);
   };
   
   const handleDeleteOrder = async () => {
-    if (!selectedOrder || !user || !role) return;
+    if (!selectedOrder || !user) return;
     const orderToDelete = selectedOrder;
     await deleteOrder(orderToDelete.id);
-    await addAuditLog({
-        user: user.name,
-        role: role,
-        action: 'Deleted Order',
-        details: `Order ${orderToDelete.orderNumber} deleted`,
-    });
     toast({
       title: "Orden Eliminada",
       description: `La orden ${orderToDelete.orderNumber} ha sido eliminada.`,
