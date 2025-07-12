@@ -34,7 +34,6 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Order, Driver } from "@/lib/types"
 import { useData } from "@/contexts/data-context"
-import { DriverCombobox } from "./driver-combobox"
 
 const orderSchema = z.object({
   orderNumber: z.string().min(1, "No. de pedido es requerido"),
@@ -129,8 +128,6 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
     if(selectedDriver) {
         form.setValue("driver", selectedDriver.name, { shouldValidate: true });
         form.setValue("fleet", selectedDriver.fleet, { shouldValidate: true });
-    } else {
-        form.setValue("driver", driverName, { shouldValidate: true });
     }
   };
   
@@ -204,10 +201,20 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                     render={({ field }) => (
                          <FormItem className="flex flex-col">
                             <FormLabel>Nombre Motorista</FormLabel>
-                                <DriverCombobox 
-                                    onDriverSelect={handleDriverSelect}
-                                    initialDriverName={field.value}
-                                />
+                                <Select onValueChange={handleDriverSelect} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccione un motorista" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {drivers.map(driver => (
+                                            <SelectItem key={driver.id} value={driver.name}>
+                                                {driver.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             <FormMessage />
                         </FormItem>
                     )}
