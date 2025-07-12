@@ -6,7 +6,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { format } from "date-fns"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -34,8 +34,8 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Order, Driver } from "@/lib/types"
 import { useData } from "@/contexts/data-context"
-import { DriverCombobox } from "./driver-combobox"
 import { CreateDriverDialog } from "../admin/create-driver-dialog"
+import { SelectDriverDialog } from "./select-driver-dialog"
 
 
 const orderSchema = z.object({
@@ -59,9 +59,8 @@ type CreateOrderDialogProps = {
 
 export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, order }: CreateOrderDialogProps) {
   const { toast } = useToast();
-  const { user, role, brands, orderTypes, drivers, addDriver, addAuditLog } = useData();
-  const [isCreateDriverDialogOpen, setIsCreateDriverDialogOpen] = React.useState(false);
-  const [newDriverName, setNewDriverName] = React.useState("");
+  const { user, role, brands, orderTypes, addAuditLog } = useData();
+  const [isSelectDriverOpen, setIsSelectDriverOpen] = React.useState(false);
 
   const brandNames = React.useMemo(() => brands.map(b => b.name), [brands]);
   const orderTypeNames = React.useMemo(() => orderTypes.map(ot => ot.name), [orderTypes]);
@@ -129,49 +128,12 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
     setIsOpen(open);
   }
 
-  const handleDriverSelect = (driverName: string) => {
-    const selectedDriver = drivers.find(d => d.name.toLowerCase() === driverName.toLowerCase());
-    if(selectedDriver) {
-        form.setValue("driver", selectedDriver.name, { shouldValidate: true });
-        form.setValue("fleet", selectedDriver.fleet, { shouldValidate: true });
-    } else {
-        form.setValue("driver", "", { shouldValidate: true });
-        form.setValue("fleet", "", { shouldValidate: true });
+  const handleDriverSelect = (driver: Driver) => {
+    if(driver) {
+        form.setValue("driver", driver.name, { shouldValidate: true });
+        form.setValue("fleet", driver.fleet, { shouldValidate: true });
     }
-  };
-
-  const handleCreateDriver = (driverName: string) => {
-    setNewDriverName(driverName);
-    setIsCreateDriverDialogOpen(true);
-  }
-
-  const handleSaveNewDriver = async (driverData: Omit<Driver, 'id'>) => {
-    if (!user || !role) return;
-    const driverId = await addDriver(driverData);
-    if (driverId) {
-        toast({
-            title: "Motorista Creado",
-            description: `El motorista "${driverData.name}" ha sido creado exitosamente.`,
-        });
-        await addAuditLog({
-            user: user.name,
-            role: role,
-            action: 'Created Driver',
-            details: `Driver "${driverData.name}" created`,
-        });
-        
-        // Select the newly created driver
-        form.setValue("driver", driverData.name, { shouldValidate: true });
-        form.setValue("fleet", driverData.fleet, { shouldValidate: true });
-
-        setIsCreateDriverDialogOpen(false);
-    } else {
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "No se pudo crear el motorista.",
-        });
-    }
+    setIsSelectDriverOpen(false);
   };
   
   return (
@@ -243,14 +205,16 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                       control={form.control}
                       name="driver"
                       render={({ field }) => (
-                           <FormItem className="flex flex-col">
+                           <FormItem>
                               <FormLabel>Nombre Motorista</FormLabel>
-                              <DriverCombobox
-                                drivers={drivers}
-                                initialDriverName={field.value}
-                                onSelectDriver={handleDriverSelect}
-                                onCreateDriver={handleCreateDriver}
-                              />
+                                <div className="flex gap-2">
+                                     <FormControl>
+                                        <Input disabled placeholder="Seleccione un motorista" {...field} />
+                                    </FormControl>
+                                    <Button type="button" variant="outline" onClick={() => setIsSelectDriverOpen(true)}>
+                                        <Search className="h-4 w-4" />
+                                    </Button>
+                                </div>
                               <FormMessage />
                           </FormItem>
                       )}
@@ -345,11 +309,10 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
           </Form>
         </DialogContent>
       </Dialog>
-      <CreateDriverDialog
-        isOpen={isCreateDriverDialogOpen}
-        setIsOpen={setIsCreateDriverDialogOpen}
-        onSave={handleSaveNewDriver}
-        initialName={newDriverName}
+      <SelectDriverDialog
+        isOpen={isSelectDriverOpen}
+        setIsOpen={setIsSelectDriverOpen}
+        onSelectDriver={handleDriverSelect}
       />
     </>
   )
