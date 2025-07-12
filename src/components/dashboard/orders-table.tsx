@@ -266,22 +266,22 @@ export function OrdersTable() {
     <TooltipProvider>
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-            <div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4">
+            <div className="flex-1">
                 <CardTitle>Órdenes</CardTitle>
                 <CardDescription>
                     Administra las órdenes y visualiza su estado.
                 </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button size="sm" variant="outline" className="h-8 gap-1 flex-1 sm:flex-initial" onClick={handleExport}>
                     <Download className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                         Exportar
                     </span>
                 </Button>
                 {canAddOrder && (
-                  <Button size="sm" className="h-8 gap-1 bg-primary hover:bg-primary/90" onClick={() => setIsCreateDialogOpen(true)}>
+                  <Button size="sm" className="h-8 gap-1 bg-primary hover:bg-primary/90 flex-1 sm:flex-initial" onClick={() => setIsCreateDialogOpen(true)}>
                       <PlusCircle className="h-3.5 w-3.5" />
                       <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                       Agregar Orden
@@ -290,10 +290,10 @@ export function OrdersTable() {
                 )}
             </div>
         </div>
-        <div className="mt-4 flex items-center gap-2 flex-wrap">
+        <div className="mt-4 flex flex-col sm:flex-row items-center gap-2 flex-wrap">
             <Input 
                 placeholder="Buscar por No. Orden o Motorista..." 
-                className="max-w-xs h-9"
+                className="w-full sm:max-w-xs h-9"
                 value={filters.searchTerm}
                 onChange={e => handleFilterChange('searchTerm', e.target.value)}
             />
@@ -303,7 +303,7 @@ export function OrdersTable() {
                   id="date"
                   variant={"outline"}
                   className={cn(
-                    "w-[260px] justify-start text-left font-normal h-9",
+                    "w-full sm:w-[260px] justify-start text-left font-normal h-9",
                     !dateRange && "text-muted-foreground"
                   )}
                 >
@@ -334,7 +334,7 @@ export function OrdersTable() {
               </PopoverContent>
             </Popover>
             <Select value={filters.driver} onValueChange={value => handleFilterChange('driver', value)}>
-                <SelectTrigger className="w-[180px] h-9">
+                <SelectTrigger className="w-full sm:w-[180px] h-9">
                     <SelectValue placeholder="Filtrar por motorista" />
                 </SelectTrigger>
                 <SelectContent>
@@ -343,7 +343,7 @@ export function OrdersTable() {
                 </SelectContent>
             </Select>
             <Select value={filters.brand} onValueChange={value => handleFilterChange('brand', value)}>
-                <SelectTrigger className="w-[160px] h-9">
+                <SelectTrigger className="w-full sm:w-[160px] h-9">
                     <SelectValue placeholder="Filtrar por marca" />
                 </SelectTrigger>
                 <SelectContent>
@@ -353,7 +353,7 @@ export function OrdersTable() {
             </Select>
             {role !== 'Fleet Supervisor' && (
               <Select value={filters.fleet} onValueChange={value => handleFilterChange('fleet', value)}>
-                  <SelectTrigger className="w-[160px] h-9">
+                  <SelectTrigger className="w-full sm:w-[160px] h-9">
                       <SelectValue placeholder="Filtrar por flota" />
                   </SelectTrigger>
                   <SelectContent>
@@ -368,21 +368,21 @@ export function OrdersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Fecha</TableHead>
+              <TableHead className="hidden md:table-cell">Fecha</TableHead>
               <TableHead>Motorista</TableHead>
               <TableHead>No. Orden</TableHead>
-              <TableHead>Marca</TableHead>
-              <TableHead>Tipo de Pedido</TableHead>
-              {!isSupervisorView && <TableHead>Flota</TableHead>}
+              <TableHead className="hidden sm:table-cell">Marca</TableHead>
+              <TableHead className="hidden lg:table-cell">Tipo de Pedido</TableHead>
+              {!isSupervisorView && <TableHead className="hidden md:table-cell">Flota</TableHead>}
               {isAdminView || isDataEntryView ? (
                 <>
                   <TableHead className="text-center">Cantidad</TableHead>
-                  <TableHead>Ingresado Por</TableHead>
+                  <TableHead className="hidden lg:table-cell">Ingresado Por</TableHead>
                 </>
               ) : (
                 <>
                   <TableHead className="text-center">Cantidad</TableHead>
-                  <TableHead>Observaciones</TableHead>
+                  <TableHead className="hidden lg:table-cell">Observaciones</TableHead>
                 </>
               )}
               <TableHead>
@@ -393,25 +393,25 @@ export function OrdersTable() {
           <TableBody>
             {paginatedOrders.map((order) => (
               <TableRow key={order.id}>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <Link href={`/orders/${order.id}`} className="hover:underline">
                     <ClientDate date={order.date} formatString="MM/dd/yyyy" />
                   </Link>
                 </TableCell>
                 <TableCell>{order.driver}</TableCell>
                 <TableCell>{order.orderNumber}</TableCell>
-                <TableCell>{order.brand}</TableCell>
-                <TableCell>{order.type}</TableCell>
-                {!isSupervisorView && <TableCell>{order.fleet}</TableCell>}
+                <TableCell className="hidden sm:table-cell">{order.brand}</TableCell>
+                <TableCell className="hidden lg:table-cell">{order.type}</TableCell>
+                {!isSupervisorView && <TableCell className="hidden md:table-cell">{order.fleet}</TableCell>}
                 {isAdminView || isDataEntryView ? (
                     <>
                         <TableCell className="text-center">{order.quantity}</TableCell>
-                        <TableCell>{order.enteredBy}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{order.enteredBy}</TableCell>
                     </>
                 ) : (
                     <>
                         <TableCell className="text-center">{order.quantity}</TableCell>
-                        <TableCell>
+                        <TableCell className="hidden lg:table-cell">
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <p className="max-w-[150px] truncate">
@@ -437,6 +437,7 @@ export function OrdersTable() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => openViewDialog(order)}>Ver Detalles</DropdownMenuItem>
                       {canEditOrDelete && (
                         <>
                           <DropdownMenuItem onClick={() => openEditDialog(order)}>
@@ -458,13 +459,13 @@ export function OrdersTable() {
         </Table>
       </CardContent>
       <CardFooter>
-        <div className="flex items-center justify-between w-full">
-            <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-4">
+            <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left">
                 {filteredOrders.length} orden(es) en total.
             </div>
-            <div className="flex items-center space-x-6 lg:space-x-8">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 lg:gap-8">
                 <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">Filas por página</p>
+                    <p className="text-sm font-medium">Filas</p>
                     <Select
                         value={`${pagination.pageSize}`}
                         onValueChange={(value) => {

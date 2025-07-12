@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Truck, LogOut } from "lucide-react";
+import { Truck, LogOut, Menu } from "lucide-react";
 import { MainNav } from "@/components/main-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,9 +16,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import * as React from "react";
 
 export function Header() {
   const data = useData();
+  const [open, setOpen] = React.useState(false);
 
   if (!data || !data.user) return null; // Render nothing if context is not yet available or no user
 
@@ -40,18 +43,51 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center">
-        <div className="mr-4 hidden md:flex">
+         <div className="mr-4 md:hidden">
+            <Sheet open={open} onOpenChange={setOpen}>
+                <SheetTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="md:hidden"
+                    >
+                        <Menu className="h-6 w-6" />
+                        <span className="sr-only">Toggle Menu</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="pr-0 pt-12">
+                    <SheetClose asChild>
+                        <Link
+                            href="/"
+                            className="flex items-center gap-2 text-lg font-semibold mb-4 pl-6"
+                        >
+                            <Truck className="h-6 w-6 text-primary" />
+                            <span>Fleet Command</span>
+                        </Link>
+                    </SheetClose>
+                     <nav className="grid gap-2 text-lg font-medium">
+                        <MainNav isMobile={true} onLinkClick={() => setOpen(false)} />
+                    </nav>
+                </SheetContent>
+            </Sheet>
+        </div>
+        <div className="mr-4 hidden md:flex items-center">
             <Link href="/" className="mr-6 flex items-center space-x-2">
                 <Truck className="h-6 w-6 text-primary" />
                 <span className="hidden font-bold sm:inline-block font-headline">
                 Fleet Command
                 </span>
             </Link>
-            <nav className="flex items-center gap-6 text-sm">
+            <nav className="flex items-center gap-2 text-sm">
                 <MainNav />
             </nav>
         </div>
+
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <Link href="/" className="md:hidden">
+              <Truck className="h-6 w-6 text-primary" />
+              <span className="sr-only">Fleet Command</span>
+          </Link>
           <div className="w-full flex-1 md:w-auto md:flex-none">
             {/* Can add a search bar here if needed */}
           </div>
@@ -61,7 +97,7 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://placehold.co/40x40" alt={user?.name} data-ai-hint="person portrait" />
+                    <AvatarImage src="https://placehold.co/40x40" alt={user?.name || ''} data-ai-hint="person portrait" />
                     <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
                   </Avatar>
                 </Button>

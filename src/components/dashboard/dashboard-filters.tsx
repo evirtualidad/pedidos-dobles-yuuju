@@ -34,15 +34,15 @@ export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersP
   };
 
   return (
-    <div className="flex items-center gap-4 flex-wrap bg-card border rounded-lg p-4">
-      <div className="grid gap-2">
+    <div className="flex flex-col sm:flex-row items-center gap-4 flex-wrap bg-card border rounded-lg p-4">
+      <div className="grid gap-2 w-full sm:w-auto">
         <Popover>
           <PopoverTrigger asChild>
             <Button
               id="date"
               variant={"outline"}
               className={cn(
-                "w-[260px] justify-start text-left font-normal",
+                "w-full sm:w-[260px] justify-start text-left font-normal",
                 !filters.dateRange.from && "text-muted-foreground"
               )}
             >
@@ -75,7 +75,7 @@ export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersP
       </div>
 
       <Select value={filters.brand || 'all'} onValueChange={value => handleFilterChange('brand', value)}>
-        <SelectTrigger className="w-[180px] h-10">
+        <SelectTrigger className="w-full sm:w-[180px] h-10">
           <SelectValue placeholder="Filtrar por marca" />
         </SelectTrigger>
         <SelectContent>
@@ -86,7 +86,7 @@ export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersP
 
       {role !== 'Fleet Supervisor' && (
         <Select value={filters.fleet || 'all'} onValueChange={value => handleFilterChange('fleet', value)}>
-            <SelectTrigger className="w-[180px] h-10">
+            <SelectTrigger className="w-full sm:w-[180px] h-10">
             <SelectValue placeholder="Filtrar por flota" />
             </SelectTrigger>
             <SelectContent>
@@ -97,7 +97,7 @@ export function DashboardFilters({ filters, onFiltersChange }: DashboardFiltersP
       )}
 
       <Select value={filters.type || 'all'} onValueChange={value => handleFilterChange('type', value)}>
-        <SelectTrigger className="w-[180px] h-10">
+        <SelectTrigger className="w-full sm:w-[180px] h-10">
           <SelectValue placeholder="Filtrar por tipo" />
         </SelectTrigger>
         <SelectContent>

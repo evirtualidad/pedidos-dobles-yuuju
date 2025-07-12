@@ -141,7 +141,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle className="font-headline">{order ? 'Editar Pedido' : 'Agregar Nuevo Pedido'}</DialogTitle>
             <DialogDescription>
@@ -150,7 +150,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
           </DialogHeader>
           <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
                           control={form.control}
                           name="orderNumber"
@@ -224,7 +224,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                           </FormItem>
                       )}
                   />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
                           control={form.control}
                           name="brand"
@@ -262,7 +262,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                           )}
                       />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
                           control={form.control}
                           name="quantity"
