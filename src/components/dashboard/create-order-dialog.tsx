@@ -129,6 +129,8 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
     if(selectedDriver) {
         form.setValue("driver", selectedDriver.name, { shouldValidate: true });
         form.setValue("fleet", selectedDriver.fleet, { shouldValidate: true });
+    } else {
+        form.setValue("driver", driverName, { shouldValidate: true });
     }
   };
   
@@ -203,8 +205,8 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                          <FormItem className="flex flex-col">
                             <FormLabel>Nombre Motorista</FormLabel>
                                 <DriverCombobox 
+                                    onDriverSelect={handleDriverSelect}
                                     initialDriverName={field.value}
-                                    onSelect={handleDriverSelect}
                                 />
                             <FormMessage />
                         </FormItem>

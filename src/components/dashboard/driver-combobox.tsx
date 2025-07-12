@@ -25,14 +25,13 @@ import type { Driver } from "@/lib/types"
 
 interface DriverComboboxProps {
     initialDriverName: string | null;
-    onSelect: (driverName: string) => void;
+    onDriverSelect: (driverName: string) => void;
 }
 
-export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxProps) {
+export function DriverCombobox({ initialDriverName, onDriverSelect }: DriverComboboxProps) {
   const { drivers, addDriver: addDriverToContext } = useData()
   const [open, setOpen] = React.useState(false)
   const [value, setValue] = React.useState(initialDriverName || "")
-  const [search, setSearch] = React.useState("")
   const [isCreateDriverOpen, setIsCreateDriverOpen] = React.useState(false)
   const [driverToCreate, setDriverToCreate] = React.useState("");
 
@@ -43,7 +42,7 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
   const handleSelect = (currentValue: string) => {
     const driverName = currentValue === value ? "" : currentValue;
     setValue(driverName);
-    onSelect(driverName);
+    onDriverSelect(driverName);
     setOpen(false);
   }
 
@@ -53,8 +52,8 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
     handleSelect(driverData.name);
   };
   
-  const openCreateDialog = () => {
-    setDriverToCreate(search);
+  const openCreateDialog = (inputValue: string) => {
+    setDriverToCreate(inputValue);
     setIsCreateDriverOpen(true);
     setOpen(false);
   }
@@ -79,17 +78,16 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
           <Command>
             <CommandInput 
                 placeholder="Buscar motorista..."
-                onValueChange={(s) => setSearch(s)}
             />
             <CommandList>
-              <CommandEmpty>
-                <div className="p-1">
-                    <Button variant="ghost" className="w-full text-left justify-start" onClick={openCreateDialog}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Crear nuevo motorista
-                    </Button>
-                </div>
-              </CommandEmpty>
+                <CommandEmpty onSelect={() => openCreateDialog((document.querySelector('[cmdk-input]') as HTMLInputElement)?.value)}>
+                    <div className="p-1">
+                         <Button variant="ghost" className="w-full text-left justify-start">
+                             <PlusCircle className="mr-2 h-4 w-4" />
+                             Crear "{ (document.querySelector('[cmdk-input]') as HTMLInputElement)?.value }"
+                         </Button>
+                    </div>
+                </CommandEmpty>
               <CommandGroup>
                 {drivers.map((driver) => (
                   <CommandItem
