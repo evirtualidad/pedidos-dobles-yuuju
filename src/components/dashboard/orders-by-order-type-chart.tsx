@@ -81,8 +81,8 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
     }
 
   return (
-    <div className="w-full h-[300px] flex items-center justify-between gap-6">
-        <div className="relative w-1/2 h-full flex items-center justify-center">
+    <div className="w-full h-[300px] flex items-center justify-center gap-6">
+        <div className="relative w-[200px] h-[200px] flex items-center justify-center shrink-0">
             <PieChart width={200} height={200}>
                 <Pie
                     data={chartData}
@@ -105,7 +105,7 @@ export function OrdersByOrderTypeChart({ orders }: OrdersByOrderTypeChartProps) 
                 <p className="text-2xl font-bold">{totalOrdersValue}</p>
             </div>
         </div>
-        <div className="w-1/2 flex flex-col gap-2 text-sm overflow-y-auto h-full pr-2">
+        <div className="flex flex-col gap-2 text-sm pr-2 w-full">
             {chartData.map(entry => (
                 <div key={entry.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
