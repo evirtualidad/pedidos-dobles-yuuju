@@ -46,7 +46,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Order } from "@/lib/types"
+import { Order, Driver } from "@/lib/types"
 import { CreateOrderDialog } from "./create-order-dialog"
 import { DeleteOrderDialog } from "./delete-order-dialog"
 import { ViewOrderDialog } from "./view-order-dialog"
@@ -62,7 +62,7 @@ import { useData } from "@/contexts/data-context"
 import Link from "next/link"
 
 export function OrdersTable() {
-  const { role, user, toast, brands, fleets, orders, addOrder, updateOrder, deleteOrder, addAuditLog } = useData();
+  const { role, user, toast, brands, fleets, orders, addOrder, updateOrder, deleteOrder, addAuditLog, addDriver } = useData();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -138,18 +138,36 @@ export function OrdersTable() {
     return filteredOrders.slice(start, end);
   }, [filteredOrders, pagination]);
 
-  const handleAddOrder = async (newOrder: Omit<Order, 'id'>) => {
+  const handleAddOrder = async (newOrder: Omit<Order, 'id' | 'enteredBy'>, newDriverData?: Omit<Driver, 'id'>) => {
     if(!user || !role) return;
-    await addOrder(newOrder);
+
+    let finalOrderData = { ...newOrder };
+
+    if (newDriverData) {
+        const driverId = await addDriver(newDriverData);
+        if (!driverId) {
+            toast({ variant: "destructive", title: "Error", description: "No se pudo crear el nuevo motorista." });
+            return;
+        }
+        await addAuditLog({
+            user: user.name,
+            role: role,
+            action: 'Created Driver',
+            details: `Driver "${newDriverData.name}" created`,
+        });
+        // The form already has the correct name and fleet, so we just proceed
+    }
+
+    await addOrder(finalOrderData);
     await addAuditLog({
         user: user.name,
         role: role,
         action: 'Created Order',
-        details: `Order ${newOrder.orderNumber} created`,
+        details: `Order ${finalOrderData.orderNumber} created`,
     });
   };
   
-  const handleUpdateOrder = async (updatedOrderData: Omit<Order, 'id'>) => {
+  const handleUpdateOrder = async (updatedOrderData: Omit<Order, 'id' | 'enteredBy'>) => {
       if(!selectedOrder || !user || !role) return;
       await updateOrder(selectedOrder.id, updatedOrderData);
       await addAuditLog({

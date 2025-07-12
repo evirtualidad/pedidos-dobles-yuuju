@@ -27,7 +27,7 @@ import { UserPlus } from "lucide-react"
 type SelectDriverDialogProps = {
   isOpen: boolean
   setIsOpen: (isOpen: boolean) => void
-  onSelectDriver: (driver: Driver) => void
+  onSelectDriver: (driver: Driver | Omit<Driver, 'id'>) => void
 }
 
 export function SelectDriverDialog({
@@ -35,7 +35,7 @@ export function SelectDriverDialog({
   setIsOpen,
   onSelectDriver,
 }: SelectDriverDialogProps) {
-  const { drivers, user, role, addDriver, addAuditLog, toast } = useData()
+  const { drivers } = useData()
   const [searchTerm, setSearchTerm] = React.useState("")
   const [isCreateDriverOpen, setIsCreateDriverOpen] = React.useState(false)
 
@@ -44,33 +44,11 @@ export function SelectDriverDialog({
       driver.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [drivers, searchTerm])
-
-  const handleCreateDriver = async (driverData: Omit<Driver, 'id'>) => {
-    if (!user || !role) return
-    const driverId = await addDriver(driverData)
-    if (driverId) {
-      toast({
-        title: "Motorista Creado",
-        description: `El motorista "${driverData.name}" ha sido creado exitosamente.`,
-      })
-      await addAuditLog({
-        user: user.name,
-        role: role,
-        action: 'Created Driver',
-        details: `Driver "${driverData.name}" created`,
-      })
-      // Automatically select the newly created driver
-      onSelectDriver({ ...driverData, id: driverId })
-      setIsCreateDriverOpen(false)
-      setIsOpen(false) // Close the selection dialog as well
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo crear el motorista.",
-      })
-    }
-  }
+  
+  const handleCreateDriverSave = (driverData: Omit<Driver, 'id'>) => {
+    onSelectDriver(driverData);
+    setIsCreateDriverOpen(false);
+  };
 
   return (
     <>
@@ -125,7 +103,7 @@ export function SelectDriverDialog({
       <CreateDriverDialog
         isOpen={isCreateDriverOpen}
         setIsOpen={setIsCreateDriverOpen}
-        onSave={handleCreateDriver}
+        onSave={handleCreateDriverSave}
         initialName={searchTerm}
       />
     </>

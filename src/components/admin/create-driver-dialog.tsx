@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { useData } from "@/contexts/data-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import type { Driver } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 const driverSchema = z.object({
   name: z.string().min(1, "El nombre del motorista es requerido."),
@@ -41,6 +42,7 @@ type CreateDriverDialogProps = {
 
 export function CreateDriverDialog({ isOpen, setIsOpen, onSave, initialName }: CreateDriverDialogProps) {
   const { fleets } = useData();
+  const { toast } = useToast();
   const fleetNames = React.useMemo(() => fleets.map(f => f.name), [fleets]);
 
   const form = useForm<z.infer<typeof driverSchema>>({
@@ -62,6 +64,10 @@ export function CreateDriverDialog({ isOpen, setIsOpen, onSave, initialName }: C
 
   const onSubmit = (values: z.infer<typeof driverSchema>) => {
     onSave(values);
+    toast({
+        title: "Motorista Definido",
+        description: `Los datos para "${values.name}" están listos. Se guardará con el pedido.`,
+    });
   };
   
   const handleOpenChange = (open: boolean) => {
@@ -77,7 +83,7 @@ export function CreateDriverDialog({ isOpen, setIsOpen, onSave, initialName }: C
         <DialogHeader>
           <DialogTitle>Añadir Nuevo Motorista</DialogTitle>
           <DialogDescription>
-            Ingresa los detalles para el nuevo motorista.
+            Ingresa los detalles para el nuevo motorista. Se creará al guardar el pedido.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -117,7 +123,7 @@ export function CreateDriverDialog({ isOpen, setIsOpen, onSave, initialName }: C
               <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">Guardar Motorista</Button>
+              <Button type="submit">Aceptar</Button>
             </DialogFooter>
           </form>
         </Form>

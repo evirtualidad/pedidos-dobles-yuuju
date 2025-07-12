@@ -34,7 +34,6 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Order, Driver } from "@/lib/types"
 import { useData } from "@/contexts/data-context"
-import { CreateDriverDialog } from "../admin/create-driver-dialog"
 import { SelectDriverDialog } from "./select-driver-dialog"
 
 
@@ -52,7 +51,7 @@ const orderSchema = z.object({
 type CreateOrderDialogProps = {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
-    onSave: (order: Omit<Order, 'id' | 'enteredBy'>) => void;
+    onSave: (order: Omit<Order, 'id' | 'enteredBy'>, newDriver?: Omit<Driver, 'id'>) => void;
     existingOrders: Order[];
     order: Order | null;
 }
@@ -61,6 +60,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   const { toast } = useToast();
   const { user, role, brands, orderTypes, addAuditLog } = useData();
   const [isSelectDriverOpen, setIsSelectDriverOpen] = React.useState(false);
+  const [newDriverData, setNewDriverData] = React.useState<Omit<Driver, 'id'> | null>(null);
 
   const brandNames = React.useMemo(() => brands.map(b => b.name), [brands]);
   const orderTypeNames = React.useMemo(() => orderTypes.map(ot => ot.name), [orderTypes]);
@@ -73,6 +73,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   React.useEffect(() => {
     // Only reset form when dialog opens or the specific order changes
     if (isOpen) {
+      setNewDriverData(null); // Reset pending new driver
       if (order) {
         form.reset({
           ...order,
@@ -114,7 +115,8 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
       }
     }
     
-    onSave(values);
+    // Pass new driver data if it exists
+    onSave(values, newDriverData || undefined);
 
     toast({
       title: order ? "Pedido Actualizado" : "Pedido Creado",
@@ -128,11 +130,16 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
     setIsOpen(open);
   }
 
-  const handleDriverSelect = (driver: Driver) => {
-    if(driver) {
-        form.setValue("driver", driver.name, { shouldValidate: true });
-        form.setValue("fleet", driver.fleet, { shouldValidate: true });
+  const handleDriverSelect = (driver: Driver | Omit<Driver, 'id'>) => {
+    if ('id' in driver) {
+        // Existing driver selected
+        setNewDriverData(null);
+    } else {
+        // New driver data received
+        setNewDriverData(driver);
     }
+    form.setValue("driver", driver.name, { shouldValidate: true });
+    form.setValue("fleet", driver.fleet, { shouldValidate: true });
     setIsSelectDriverOpen(false);
   };
   
