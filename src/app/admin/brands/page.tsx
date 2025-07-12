@@ -15,19 +15,37 @@ import { useData } from "@/contexts/data-context";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminBrandsPage() {
-    const { brands, orders, addBrand, updateBrand, deleteBrand } = useData();
+    const { user, role, brands, orders, addBrand, updateBrand, deleteBrand, addAuditLog } = useData();
     const { toast } = useToast();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedBrand, setSelectedBrand] = React.useState<Brand | null>(null);
 
+    const handleAddBrand = async (name: string) => {
+        if (!user || !role) return;
+        await addBrand(name);
+        await addAuditLog({
+            user: user.name,
+            role: role,
+            action: 'Created Brand',
+            details: `Brand "${name}" created`,
+        });
+    };
+
     const handleUpdateBrand = async (id: string, name: string) => {
+        if (!user || !role) return;
         await updateBrand(id, name);
+        await addAuditLog({
+            user: user.name,
+            role: role,
+            action: 'Updated Brand',
+            details: `Brand "${name}" (ID: ${id}) updated`,
+        });
         setSelectedBrand(null);
     };
 
     const handleDeleteBrand = async () => {
-        if (selectedBrand) {
+        if (selectedBrand && user && role) {
             const isBrandInUse = orders.some(order => order.brand === selectedBrand.name);
 
             if (isBrandInUse) {
@@ -42,6 +60,13 @@ export default function AdminBrandsPage() {
             }
 
             await deleteBrand(selectedBrand.id);
+            await addAuditLog({
+                user: user.name,
+                role: role,
+                action: 'Deleted Brand',
+                details: `Brand "${selectedBrand.name}" (ID: ${selectedBrand.id}) deleted`,
+            });
+
             setIsDeleteDialogOpen(false);
             setSelectedBrand(null);
         }
@@ -119,7 +144,7 @@ export default function AdminBrandsPage() {
             <CreateBrandDialog
                 isOpen={isCreateDialogOpen}
                 setIsOpen={closeCreateDialog}
-                onSave={selectedBrand ? (name) => handleUpdateBrand(selectedBrand.id, name) : addBrand}
+                onSave={selectedBrand ? (name) => handleUpdateBrand(selectedBrand.id, name) : handleAddBrand}
                 brand={selectedBrand}
             />
 

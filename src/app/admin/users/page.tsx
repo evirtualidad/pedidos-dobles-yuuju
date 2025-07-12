@@ -19,16 +19,19 @@ import { auth, db } from "@/lib/firebase";
 
 
 export default function AdminUsersPage() {
-    const { users, updateUser, deleteUser, fleets } = useData();
+    const { users, user: currentUser, role: currentRole, updateUser, deleteUser, fleets, addAuditLog } = useData();
     const { toast } = useToast();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedUser, setSelectedUser] = React.useState<UserWithId | null>(null);
 
     const handleAddUser = async (userData: Omit<UserWithId, 'id'>) => {
+        if (!currentUser || !currentRole) return;
         try {
             // Step 1: Create user in Firebase Auth
-            const userCredential = await createUserWithEmailAndPassword(auth, userData.email, "password"); // Using a default password
+            // Note: For security, never send passwords from the client in a real app. 
+            // This should be handled by a secure backend function. We use a default for this demo.
+            const userCredential = await createUserWithEmailAndPassword(auth, userData.email, "password");
             const firebaseUser = userCredential.user;
 
             // Step 2: Create user profile in Firestore with the UID from Auth
@@ -43,9 +46,16 @@ export default function AdminUsersPage() {
 
             await setDoc(doc(db, "users", firebaseUser.uid), userProfile);
             
+            await addAuditLog({
+                user: currentUser.name,
+                role: currentRole,
+                action: 'Created User',
+                details: `User "${userData.name}" (${userData.email}) created with role ${userData.role}`,
+            });
+
             toast({
                 title: "Usuario Creado",
-                description: `El usuario "${userData.name}" ha sido creado exitosamente.`,
+                description: `El usuario "${userData.name}" ha sido creado exitosamente. La contraseña inicial es "password".`,
             });
 
         } catch (error: any) {
@@ -60,20 +70,34 @@ export default function AdminUsersPage() {
     };
 
     const handleUpdateUser = async (id: string, user: Omit<UserWithId, 'id'>) => {
+        if (!currentUser || !currentRole) return;
         await updateUser(id, user);
+        await addAuditLog({
+            user: currentUser.name,
+            role: currentRole,
+            action: 'Updated User',
+            details: `User "${user.name}" (ID: ${id}) updated`,
+        });
         setSelectedUser(null);
     };
 
     const handleDeleteUser = async () => {
-        if (selectedUser) {
+        if (selectedUser && currentUser && currentRole) {
             // Note: This only deletes from Firestore. Deleting from Firebase Auth is a protected
             // operation that should be handled by a backend function for security reasons.
+            // We are only deleting the Firestore record to disable app access.
             await deleteUser(selectedUser.id);
+            await addAuditLog({
+                user: currentUser.name,
+                role: currentRole,
+                action: 'Deleted User',
+                details: `User "${selectedUser.name}" (ID: ${selectedUser.id}) profile deleted from Firestore`,
+            });
             setIsDeleteDialogOpen(false);
             setSelectedUser(null);
             toast({
                 title: "Usuario Eliminado",
-                description: `El perfil de "${selectedUser.name}" ha sido eliminado de Firestore.`,
+                description: `El perfil de "${selectedUser.name}" ha sido eliminado de Firestore. La cuenta de autenticación aún existe.`,
             });
         }
     };
