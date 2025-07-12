@@ -2,14 +2,16 @@
 "use client";
 
 import * as React from "react";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, MoreHorizontal, ArrowUp, ArrowDown } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PlusCircle, MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CreateOrderTypeDialog } from "@/components/admin/create-order-type-dialog";
 import { DeleteOrderTypeDialog } from "@/components/admin/delete-order-type-dialog";
+import { SortableItem } from "@/components/admin/sortable-item";
 import type { OrderType } from "@/lib/types";
 import { useData } from "@/contexts/data-context";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +22,28 @@ export default function AdminOrderTypesPage() {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [selectedOrderType, setSelectedOrderType] = React.useState<OrderType | null>(null);
+    const [activeOrderTypes, setActiveOrderTypes] = React.useState<OrderType[]>([]);
+
+    React.useEffect(() => {
+        setActiveOrderTypes(orderTypes);
+    }, [orderTypes]);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor)
+    );
+
+    const handleDragEnd = async (event: any) => {
+        const { active, over } = event;
+
+        if (active.id !== over.id) {
+            const oldIndex = activeOrderTypes.findIndex((item) => item.id === active.id);
+            const newIndex = activeOrderTypes.findIndex((item) => item.id === over.id);
+            const reorderedTypes = arrayMove(activeOrderTypes, oldIndex, newIndex);
+            
+            setActiveOrderTypes(reorderedTypes);
+            await updateOrderTypesOrder(reorderedTypes);
+        }
+    };
 
     const handleAddOrderType = async (name: string) => {
         if (!user || !role) return;
@@ -70,20 +94,6 @@ export default function AdminOrderTypesPage() {
             setSelectedOrderType(null);
         }
     };
-    
-    const handleMove = async (index: number, direction: 'up' | 'down') => {
-        if ((index === 0 && direction === 'up') || (index === orderTypes.length - 1 && direction === 'down')) {
-            return;
-        }
-
-        const newOrderTypes = [...orderTypes];
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-
-        [newOrderTypes[index], newOrderTypes[targetIndex]] = [newOrderTypes[targetIndex], newOrderTypes[index]];
-        
-        await updateOrderTypesOrder(newOrderTypes);
-    };
-
 
     const openEditDialog = (orderType: OrderType) => {
         setSelectedOrderType(orderType);
@@ -108,7 +118,7 @@ export default function AdminOrderTypesPage() {
                         <div>
                             <CardTitle>Tipos de Pedido</CardTitle>
                             <CardDescription>
-                                Gestiona y ordena los tipos de pedido. El primero de la lista será el predeterminado.
+                                Gestiona y ordena los tipos de pedido arrastrándolos. El primero de la lista será el predeterminado.
                             </CardDescription>
                         </div>
                         <Button size="sm" className="gap-1" onClick={() => setIsCreateDialogOpen(true)}>
@@ -118,50 +128,29 @@ export default function AdminOrderTypesPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Nombre del Tipo de Pedido</TableHead>
-                                <TableHead className="w-[100px]">Orden</TableHead>
-                                <TableHead className="w-[100px]">
-                                    <span className="sr-only">Acciones</span>
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {orderTypes.map((orderType, index) => (
-                                <TableRow key={orderType.id}>
-                                    <TableCell>{orderType.name}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleMove(index, 'up')} disabled={index === 0}>
-                                                <ArrowUp className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleMove(index, 'down')} disabled={index === orderTypes.length - 1}>
-                                                <ArrowDown className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex justify-end">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Toggle menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => openEditDialog(orderType)}>Editar</DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(orderType)}>Eliminar</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <div className="border rounded-md">
+                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                            <SortableContext items={activeOrderTypes.map(item => item.id)} strategy={verticalListSortingStrategy}>
+                                {activeOrderTypes.map((orderType) => (
+                                    <SortableItem key={orderType.id} id={orderType.id}>
+                                        <div className="flex-1">{orderType.name}</div>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <span className="sr-only">Toggle menu</span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onClick={() => openEditDialog(orderType)}>Editar</DropdownMenuItem>
+                                                <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(orderType)}>Eliminar</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </SortableItem>
+                                ))}
+                            </SortableContext>
+                        </DndContext>
+                    </div>
                 </CardContent>
             </Card>
 
