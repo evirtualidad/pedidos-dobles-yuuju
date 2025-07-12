@@ -32,7 +32,7 @@ interface DriverComboboxProps {
 export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxProps) {
   const { drivers } = useData()
   const [open, setOpen] = React.useState(false)
-  const [searchValue, setSearchValue] = React.useState(initialDriverName || "")
+  const [searchValue, setSearchValue] = React.useState("")
   const [isCreateDriverOpen, setIsCreateDriverOpen] = React.useState(false)
   const [typedValue, setTypedValue] = React.useState("")
 
@@ -54,7 +54,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
 
   const handleCreateNew = () => {
     setOpen(false)
-    setTypedValue(searchValue) // Store what the user typed
+    setTypedValue(searchValue) 
     setIsCreateDriverOpen(true)
   }
 
@@ -71,7 +71,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
         <PopoverAnchor asChild>
           <Input
             value={searchValue}
-            onValueChange={(e) => setSearchValue((e.target as HTMLInputElement).value)}
+            onChange={(e) => setSearchValue(e.target.value)}
             onFocus={() => setOpen(true)}
             placeholder="Buscar o crear motorista..."
             className="w-full"
@@ -82,6 +82,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <Command>
+            {/* We don't need CommandInput here as the search is driven by the external Input */}
             <CommandList>
               <CommandGroup>
                 {filteredDrivers.map((driver) => (
@@ -105,7 +106,7 @@ export function DriverCombobox({ onSelect, initialDriverName }: DriverComboboxPr
                   <p className="text-sm text-center text-muted-foreground mb-2">No se encontró el motorista.</p>
                   <Button className="w-full" size="sm" onClick={handleCreateNew}>
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Crear nuevo motorista
+                    Crear "{searchValue}"
                   </Button>
                 </div>
               </CommandEmpty>
