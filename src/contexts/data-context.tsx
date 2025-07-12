@@ -114,8 +114,26 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const [auditLogs, setAuditLogs] = React.useState<AuditLog[]>([]);
     const [drivers, setDrivers] = React.useState<Driver[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [initialAuthCheck, setInitialAuthCheck] = React.useState(false);
 
     React.useEffect(() => {
+        // We start listeners regardless of user state to get `users` list for the login page logic
+        const unsubscribers = [
+            onSnapshot(collection(db, "brands"), (snapshot) => setBrands(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Brand)))),
+            onSnapshot(collection(db, "fleets"), (snapshot) => setFleets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fleet)))),
+            onSnapshot(collection(db, "orderTypes"), (snapshot) => setOrderTypes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderType)))),
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserWithId)))
+                // This check is important for the login page logic to create the first admin
+                 if (!initialAuthCheck) {
+                    setInitialAuthCheck(true);
+                }
+            }),
+            onSnapshot(query(collection(db, "orders"), orderBy("date", "desc")), (snapshot) => setOrders(snapshot.docs.map(doc => mapTimestampToDate({ id: doc.id, ...doc.data() } as Order)))),
+            onSnapshot(query(collection(db, "auditLogs"), orderBy("timestamp", "desc")), (snapshot) => setAuditLogs(snapshot.docs.map(doc => mapTimestampToDate({ id: doc.id, ...doc.data() } as AuditLog)))),
+            onSnapshot(collection(db, "drivers"), (snapshot) => setDrivers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Driver)))),
+        ];
+
         const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
                 const userDocRef = doc(db, "users", firebaseUser.uid);
@@ -126,21 +144,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                     setUser(userData);
                     setRole(userData.role);
                 } else {
-                    console.log("User profile not found in Firestore, creating one...");
                     // This case handles the very first user or a user created in Auth but not Firestore yet.
-                    const isFirstUser = users.length === 0;
+                    console.log("User profile not found in Firestore, creating one...");
                     const newUserProfile: Omit<UserWithId, 'id'> = {
                         name: firebaseUser.displayName || firebaseUser.email || 'New User',
                         email: firebaseUser.email!,
-                        role: isFirstUser ? 'Admin' : 'Data Entry', // First user is Admin, others default to Data Entry
+                        role: 'Admin', // First user is Admin
                     };
                     await setDoc(userDocRef, newUserProfile);
                     setUser({id: firebaseUser.uid, ...newUserProfile});
                     setRole(newUserProfile.role);
-                    toast({
-                        title: isFirstUser ? "Bienvenido, Admin" : "Bienvenido",
-                        description: "Tu perfil ha sido creado.",
-                    });
                 }
 
                 if (pathname === '/login') {
@@ -149,36 +162,34 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             } else {
                 setUser(null);
                 setRole(null);
-                if (pathname !== '/login') {
+                 if (pathname !== '/login') {
                     router.push('/login');
                 }
             }
-            setLoading(false);
+             if (initialAuthCheck) {
+                setLoading(false);
+            }
         });
-        return () => unsubscribeAuth();
-    }, [pathname, router, users.length]);
 
-    // Firestore listeners
-    React.useEffect(() => {
-        // We start listeners regardless of user state to get `users` list for the login page logic
-        const unsubscribers = [
-            onSnapshot(collection(db, "brands"), (snapshot) => setBrands(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Brand)))),
-            onSnapshot(collection(db, "fleets"), (snapshot) => setFleets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fleet)))),
-            onSnapshot(collection(db, "orderTypes"), (snapshot) => setOrderTypes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderType)))),
-            onSnapshot(collection(db, "users"), (snapshot) => setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserWithId)))),
-            onSnapshot(query(collection(db, "orders"), orderBy("date", "desc")), (snapshot) => setOrders(snapshot.docs.map(doc => mapTimestampToDate({ id: doc.id, ...doc.data() } as Order)))),
-            onSnapshot(query(collection(db, "auditLogs"), orderBy("timestamp", "desc")), (snapshot) => setAuditLogs(snapshot.docs.map(doc => mapTimestampToDate({ id: doc.id, ...doc.data() } as AuditLog)))),
-            onSnapshot(collection(db, "drivers"), (snapshot) => setDrivers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Driver)))),
-        ];
-        return () => unsubscribers.forEach(unsub => unsub());
-    }, []);
+        return () => {
+            unsubscribers.forEach(unsub => unsub());
+            unsubscribeAuth();
+        };
+    }, [pathname, router, initialAuthCheck]);
+
+
+     React.useEffect(() => {
+        if (!loading && !user && pathname !== '/login') {
+            router.push('/login');
+        }
+    }, [loading, user, pathname, router]);
 
     const login = async (email: string, pass: string) => {
         try {
             await signInWithEmailAndPassword(auth, email, pass);
             return true;
         } catch (error) {
-            console.error("Login failed:", error);
+            // Error is handled in the UI with a toast, so we just return false.
             return false;
         }
     }
@@ -203,8 +214,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             if(role === 'Fleet Supervisor' && fleet) {
                 userProfile.fleet = fleet;
             }
-            // The onAuthStateChanged listener will create the Firestore doc.
-            // But we can create it here as well to be certain.
             await setDoc(doc(db, "users", firebaseUser.uid), userProfile);
             return firebaseUser;
         } catch (error) {
@@ -236,17 +245,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     };
 
     // Brand Management
-    const addBrand = (name: string) => addItem('brands', { name });
+    const addBrand = (name: string) => addDoc(collection(db, 'brands'), { name }).then(() => {});
     const updateBrand = (id: string, name: string) => updateItem('brands', id, { name });
     const deleteBrand = (id: string) => deleteItem('brands', id);
 
     // Fleet Management
-    const addFleet = (name: string) => addItem('fleets', { name });
+    const addFleet = (name: string) => addDoc(collection(db, 'fleets'), { name }).then(() => {});
     const updateFleet = (id: string, name: string) => updateItem('fleets', id, { name });
     const deleteFleet = (id: string) => deleteItem('fleets', id);
 
     // Order Type Management
-    const addOrderType = (name: string) => addItem('orderTypes', { name });
+    const addOrderType = (name: string) => addDoc(collection(db, 'orderTypes'), { name }).then(() => {});
     const updateOrderType = (id: string, name: string) => updateItem('orderTypes', id, { name });
     const deleteOrderType = (id: string) => deleteItem('orderTypes', id);
     
@@ -279,17 +288,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-
-    if (loading) {
-        return <LoadingScreen />;
-    }
-
-    if (!user && pathname !== '/login') {
-        return <LoadingScreen />;
-    }
-    
-    if (user && pathname === '/login') {
-        // This can cause a flicker, handled by useEffect but as a safeguard.
+    if (loading && !initialAuthCheck) {
         return <LoadingScreen />;
     }
 
