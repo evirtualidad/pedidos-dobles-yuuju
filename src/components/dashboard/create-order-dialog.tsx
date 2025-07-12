@@ -81,17 +81,13 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
           observations: order.observations || "",
         });
       } else {
-        const defaultType = orderTypes.find(t => t.name === "Larga distancia") 
-            ? "Larga distancia" 
-            : orderTypes.length > 0 ? orderTypes[0].name : "";
-
         form.reset({
           orderNumber: "",
           driver: "",
           date: new Date(),
           brand: "",
           fleet: "",
-          type: defaultType,
+          type: orderTypes.length > 0 ? orderTypes[0].name : "",
           quantity: 1,
           observations: "",
         });

@@ -34,7 +34,7 @@ const userSchema = z.object({
   fleet: z.string().optional(),
 }).refine(data => {
     if (data.role === 'Fleet Supervisor') {
-        return !!data.fleet;
+        return !!data.fleet && data.fleet.length > 0;
     }
     return true;
 }, {
@@ -67,17 +67,19 @@ export function CreateUserDialog({ isOpen, setIsOpen, onSave, user, fleets }: Cr
   const selectedRole = form.watch("role");
 
   React.useEffect(() => {
-    if (user) {
-      form.reset({
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          fleet: user.fleet || "",
-      });
-    } else {
-      form.reset({ name: "", email: "", role: "Data Entry", fleet: "" });
+    if (isOpen) {
+        if (user) {
+            form.reset({
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                fleet: user.fleet || "",
+            });
+            } else {
+            form.reset({ name: "", email: "", role: "Data Entry", fleet: "" });
+        }
     }
-  }, [user, form, isOpen]); // Added isOpen to ensure reset happens when dialog opens
+  }, [user, form, isOpen]);
   
   React.useEffect(() => {
     if (selectedRole !== 'Fleet Supervisor') {
@@ -168,24 +170,26 @@ export function CreateUserDialog({ isOpen, setIsOpen, onSave, user, fleets }: Cr
                 </FormItem>
               )}
             />
-            {selectedRole === 'Fleet Supervisor' && (
-                 <FormField
-                    control={form.control}
-                    name="fleet"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Flota</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                    <SelectTrigger><SelectValue placeholder="Seleccione una flota" /></SelectTrigger>
-                                </FormControl>
-                                <SelectContent>{fleets.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            )}
+            <div className={`transition-all duration-300 ease-in-out ${selectedRole === 'Fleet Supervisor' ? 'opacity-100 max-h-40' : 'opacity-0 max-h-0 overflow-hidden'}`}>
+                {selectedRole === 'Fleet Supervisor' && (
+                     <FormField
+                        control={form.control}
+                        name="fleet"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Flota</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger><SelectValue placeholder="Seleccione una flota" /></SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>{fleets.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+            </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
                 Cancelar

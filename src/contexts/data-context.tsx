@@ -295,8 +295,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     const addOrder = async (orderData: Omit<Order, 'id' | 'enteredBy'>, newDriverData?: Omit<Driver, 'id'>) => {
         if (!user) throw new Error("No user logged in");
-        let finalOrderData: Omit<Order, 'id'>;
-
+        
         if (newDriverData) {
             const driverId = await addDriver(newDriverData);
             if (!driverId) {
@@ -305,7 +304,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             }
         }
         
-        finalOrderData = { ...orderData, enteredBy: user.name };
+        const finalOrderData = { ...orderData, enteredBy: user.name };
         await addItem('orders', finalOrderData);
     }
 
@@ -324,6 +323,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             return docRef.id;
         } catch (e) {
             console.error("Error adding driver: ", e);
+            return undefined;
         }
     };
 
