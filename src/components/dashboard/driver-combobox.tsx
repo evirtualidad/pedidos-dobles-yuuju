@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button"
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
+  CommandGroup,
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
@@ -32,18 +32,17 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
   const { drivers, addDriver: addDriverToContext } = useData()
   const [open, setOpen] = React.useState(false)
   const [value, setValue] = React.useState(initialDriverName || "")
-  const [search, setSearch] = React.useState(initialDriverName || "")
-
+  const [search, setSearch] = React.useState("")
   const [isCreateDriverOpen, setIsCreateDriverOpen] = React.useState(false)
+  const [driverToCreate, setDriverToCreate] = React.useState("");
 
   React.useEffect(() => {
     setValue(initialDriverName || "");
-    setSearch(initialDriverName || "");
   }, [initialDriverName]);
 
-  const handleSelect = (driverName: string) => {
+  const handleSelect = (currentValue: string) => {
+    const driverName = currentValue === value ? "" : currentValue;
     setValue(driverName);
-    setSearch(driverName);
     onSelect(driverName);
     setOpen(false);
   }
@@ -53,15 +52,12 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
     setIsCreateDriverOpen(false);
     handleSelect(driverData.name);
   };
-
-  const openCreateDriverDialog = () => {
-    setIsCreateDriverOpen(true);
-    setOpen(false); // Close combobox popover
-  }
   
-  const filteredDrivers = drivers.filter(driver =>
-    driver.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const openCreateDialog = () => {
+    setDriverToCreate(search);
+    setIsCreateDriverOpen(true);
+    setOpen(false);
+  }
 
   return (
     <>
@@ -73,50 +69,54 @@ export function DriverCombobox({ initialDriverName, onSelect }: DriverComboboxPr
             aria-expanded={open}
             className="w-full justify-between"
           >
-            {value ? drivers.find((driver) => driver.name === value)?.name : "Seleccione un motorista..."}
+            {value
+              ? drivers.find((driver) => driver.name.toLowerCase() === value.toLowerCase())?.name
+              : "Seleccione un motorista..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-          <Command shouldFilter={false}>
+          <Command>
             <CommandInput 
                 placeholder="Buscar motorista..."
-                value={search}
-                onValueChange={setSearch}
+                onValueChange={(s) => setSearch(s)}
             />
-             <CommandList>
-                <CommandEmpty>
-                    <Button variant="ghost" className="w-full text-left justify-start p-2" onClick={openCreateDriverDialog}>
+            <CommandList>
+              <CommandEmpty>
+                <div className="p-1">
+                    <Button variant="ghost" className="w-full text-left justify-start" onClick={openCreateDialog}>
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Crear "{search}"
+                        Crear nuevo motorista
                     </Button>
-                </CommandEmpty>
-                <CommandGroup>
-                {filteredDrivers.map((driver) => (
-                    <CommandItem
-                        key={driver.id}
-                        value={driver.name}
-                        onSelect={() => handleSelect(driver.name)}
-                    >
+                </div>
+              </CommandEmpty>
+              <CommandGroup>
+                {drivers.map((driver) => (
+                  <CommandItem
+                    key={driver.id}
+                    value={driver.name}
+                    onSelect={handleSelect}
+                  >
                     <Check
-                        className={cn(
+                      className={cn(
                         "mr-2 h-4 w-4",
-                        value === driver.name ? "opacity-100" : "opacity-0"
-                        )}
+                        value.toLowerCase() === driver.name.toLowerCase() ? "opacity-100" : "opacity-0"
+                      )}
                     />
                     {driver.name}
-                    </CommandItem>
+                  </CommandItem>
                 ))}
-                </CommandGroup>
+              </CommandGroup>
             </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
+
       <CreateDriverDialog
         isOpen={isCreateDriverOpen}
         setIsOpen={setIsCreateDriverOpen}
         onSave={handleCreateDriver}
-        initialName={search}
+        initialName={driverToCreate}
       />
     </>
   )
