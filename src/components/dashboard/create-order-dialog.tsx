@@ -34,6 +34,9 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Order, Driver } from "@/lib/types"
 import { useData } from "@/contexts/data-context"
+import { DriverCombobox } from "./driver-combobox"
+import { CreateDriverDialog } from "../admin/create-driver-dialog"
+
 
 const orderSchema = z.object({
   orderNumber: z.string().min(1, "No. de pedido es requerido"),
@@ -56,7 +59,9 @@ type CreateOrderDialogProps = {
 
 export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, order }: CreateOrderDialogProps) {
   const { toast } = useToast();
-  const { brands, orderTypes, drivers } = useData();
+  const { user, role, brands, orderTypes, drivers, addDriver, addAuditLog } = useData();
+  const [isCreateDriverDialogOpen, setIsCreateDriverDialogOpen] = React.useState(false);
+  const [newDriverName, setNewDriverName] = React.useState("");
 
   const brandNames = React.useMemo(() => brands.map(b => b.name), [brands]);
   const orderTypeNames = React.useMemo(() => orderTypes.map(ot => ot.name), [orderTypes]);
@@ -128,186 +133,223 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
     if(selectedDriver) {
         form.setValue("driver", selectedDriver.name, { shouldValidate: true });
         form.setValue("fleet", selectedDriver.fleet, { shouldValidate: true });
+    } else {
+        form.setValue("driver", "", { shouldValidate: true });
+        form.setValue("fleet", "", { shouldValidate: true });
+    }
+  };
+
+  const handleCreateDriver = (driverName: string) => {
+    setNewDriverName(driverName);
+    setIsCreateDriverDialogOpen(true);
+  }
+
+  const handleSaveNewDriver = async (driverData: Omit<Driver, 'id'>) => {
+    if (!user || !role) return;
+    const driverId = await addDriver(driverData);
+    if (driverId) {
+        toast({
+            title: "Motorista Creado",
+            description: `El motorista "${driverData.name}" ha sido creado exitosamente.`,
+        });
+        await addAuditLog({
+            user: user.name,
+            role: role,
+            action: 'Created Driver',
+            details: `Driver "${driverData.name}" created`,
+        });
+        
+        // Select the newly created driver
+        form.setValue("driver", driverData.name, { shouldValidate: true });
+        form.setValue("fleet", driverData.fleet, { shouldValidate: true });
+
+        setIsCreateDriverDialogOpen(false);
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se pudo crear el motorista.",
+        });
     }
   };
   
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader>
-          <DialogTitle className="font-headline">{order ? 'Editar Pedido' : 'Agregar Nuevo Pedido'}</DialogTitle>
-          <DialogDescription>
-            {order ? 'Modifique los detalles del pedido.' : 'Ingrese los detalles del nuevo pedido.'}
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="orderNumber"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>No. Pedido</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., ORD1234" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="date"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Fecha de Ingreso</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                        "w-full pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                    )}
-                                    >
-                                    {field.value ? (
-                                        format(field.value, "PPP")
-                                    ) : (
-                                        <span>Seleccione una fecha</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    initialFocus
-                                />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                 <FormField
-                    control={form.control}
-                    name="driver"
-                    render={({ field }) => (
-                         <FormItem className="flex flex-col">
-                            <FormLabel>Nombre Motorista</FormLabel>
-                                <Select onValueChange={handleDriverSelect} value={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Seleccione un motorista" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {drivers.map(driver => (
-                                            <SelectItem key={driver.id} value={driver.name}>
-                                                {driver.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="brand"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Marca</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value} disabled={brandNames.length === 0}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={brandNames.length > 0 ? "Seleccione una marca" : "Añada marcas en Gestión"} />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>{brandNames.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="type"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Tipo de Pedido</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value} disabled={orderTypeNames.length === 0}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={orderTypeNames.length > 0 ? "Seleccione un tipo" : "Añada tipos en Gestión"} />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>{orderTypeNames.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="quantity"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Cantidad</FormLabel>
-                            <FormControl>
-                                <Input type="number" placeholder="e.g., 2" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name="fleet"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Flota (Automática)</FormLabel>
-                                    <FormControl>
-                                        <Input disabled {...field} />
-                                    </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                <FormField
-                    control={form.control}
-                    name="observations"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Observaciones</FormLabel>
-                        <FormControl>
-                            <Textarea 
-                                placeholder="Añada observaciones aquí..." 
-                                {...field} 
-                            />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <DialogFooter>
-                    <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancelar</Button>
-                    <Button type="submit" className="bg-primary hover:bg-primary/90">Guardar Pedido</Button>
-                </DialogFooter>
-            </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="font-headline">{order ? 'Editar Pedido' : 'Agregar Nuevo Pedido'}</DialogTitle>
+            <DialogDescription>
+              {order ? 'Modifique los detalles del pedido.' : 'Ingrese los detalles del nuevo pedido.'}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                          control={form.control}
+                          name="orderNumber"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>No. Pedido</FormLabel>
+                              <FormControl>
+                                  <Input placeholder="e.g., ORD1234" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="date"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Fecha de Ingreso</FormLabel>
+                              <Popover>
+                                  <PopoverTrigger asChild>
+                                  <FormControl>
+                                      <Button
+                                      variant={"outline"}
+                                      className={cn(
+                                          "w-full pl-3 text-left font-normal",
+                                          !field.value && "text-muted-foreground"
+                                      )}
+                                      >
+                                      {field.value ? (
+                                          format(field.value, "PPP")
+                                      ) : (
+                                          <span>Seleccione una fecha</span>
+                                      )}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                      </Button>
+                                  </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                      mode="single"
+                                      selected={field.value}
+                                      onSelect={field.onChange}
+                                      initialFocus
+                                  />
+                                  </PopoverContent>
+                              </Popover>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                  </div>
+                   <FormField
+                      control={form.control}
+                      name="driver"
+                      render={({ field }) => (
+                           <FormItem className="flex flex-col">
+                              <FormLabel>Nombre Motorista</FormLabel>
+                              <DriverCombobox
+                                drivers={drivers}
+                                selectedDriverName={field.value}
+                                onSelectDriver={handleDriverSelect}
+                                onCreateDriver={handleCreateDriver}
+                              />
+                              <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                          control={form.control}
+                          name="brand"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Marca</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value} disabled={brandNames.length === 0}>
+                                      <FormControl>
+                                          <SelectTrigger>
+                                              <SelectValue placeholder={brandNames.length > 0 ? "Seleccione una marca" : "Añada marcas en Gestión"} />
+                                          </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>{brandNames.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="type"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Tipo de Pedido</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value} disabled={orderTypeNames.length === 0}>
+                                      <FormControl>
+                                          <SelectTrigger>
+                                              <SelectValue placeholder={orderTypeNames.length > 0 ? "Seleccione un tipo" : "Añada tipos en Gestión"} />
+                                          </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>{orderTypeNames.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                          control={form.control}
+                          name="quantity"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Cantidad</FormLabel>
+                              <FormControl>
+                                  <Input type="number" placeholder="e.g., 2" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                       <FormField
+                          control={form.control}
+                          name="fleet"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Flota (Automática)</FormLabel>
+                                      <FormControl>
+                                          <Input disabled {...field} />
+                                      </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                  </div>
+                  <FormField
+                      control={form.control}
+                      name="observations"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Observaciones</FormLabel>
+                          <FormControl>
+                              <Textarea 
+                                  placeholder="Añada observaciones aquí..." 
+                                  {...field} 
+                              />
+                          </FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+                  <DialogFooter>
+                      <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancelar</Button>
+                      <Button type="submit" className="bg-primary hover:bg-primary/90">Guardar Pedido</Button>
+                  </DialogFooter>
+              </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      <CreateDriverDialog
+        isOpen={isCreateDriverDialogOpen}
+        setIsOpen={setIsCreateDriverDialogOpen}
+        onSave={handleSaveNewDriver}
+        initialName={newDriverName}
+      />
+    </>
   )
 }
