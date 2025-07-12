@@ -23,44 +23,43 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { Truck } from "lucide-react";
+import { useData } from "@/contexts/data-context";
+
 
 const loginSchema = z.object({
   email: z.string().email("Por favor, ingresa un correo electrónico válido."),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres."),
+  password: z.string().min(1, "La contraseña es requerida."),
 });
 
 export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { login } = useData();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: "admin@example.com",
+      password: "password",
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+  const onSubmit = (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      // The DataContext will handle redirection on successful login
-    } catch (error: any) {
-      console.error("Login failed:", error);
+    const success = login(values.email, values.password);
+    
+    if (!success) {
       toast({
         variant: "destructive",
         title: "Error al iniciar sesión",
         description: "El correo o la contraseña son incorrectos. Por favor, inténtalo de nuevo.",
       });
-    } finally {
-      setIsLoading(false);
     }
+    // Redirection is handled by DataContext
+    setIsLoading(false);
   };
 
   return (

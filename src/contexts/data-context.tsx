@@ -3,28 +3,16 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import type { Brand, Fleet, OrderType, User, UserWithId, Order, AuditLog, FirebaseOrder, FirebaseAuditLog, Role } from "@/lib/types";
-import { db, auth } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { 
-    collection, 
-    onSnapshot, 
-    addDoc, 
-    updateDoc, 
-    deleteDoc, 
-    doc,
-    query,
-    orderBy,
-    Timestamp,
-    getDoc,
-    setDoc,
-} from "firebase/firestore";
+import type { Brand, Fleet, OrderType, UserWithId, Order, AuditLog, Role } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { MOCK_DATA } from "@/lib/mock-data";
 
 type DataContextType = {
   user: UserWithId | null;
   role: Role | null;
+  login: (email: string, pass: string) => boolean;
+  logout: () => void;
   
   brands: Brand[];
   addBrand: (name: string) => Promise<void>;
@@ -42,13 +30,13 @@ type DataContextType = {
   deleteOrderType: (id: string) => Promise<void>;
 
   users: UserWithId[];
-  addUser: (id: string, user: Omit<UserWithId, 'id'>) => Promise<void>;
+  addUser: (user: Omit<UserWithId, 'id'>) => Promise<void>;
   updateUser: (id: string, user: Omit<UserWithId, 'id'>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
 
   orders: Order[];
-  addOrder: (order: Omit<Order, 'id'>) => Promise<void>;
-  updateOrder: (id: string, order: Omit<Order, 'id'>) => Promise<void>;
+  addOrder: (order: Omit<Order, 'id' | 'enteredBy'>) => Promise<void>;
+  updateOrder: (id: string, order: Omit<Order, 'id' | 'enteredBy'>) => Promise<void>;
   deleteOrder: (id: string) => Promise<void>;
 
   auditLogs: AuditLog[];
@@ -82,188 +70,131 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = React.useState<UserWithId | null>(null);
     const [role, setRole] = React.useState<Role | null>(null);
     
-    const [brands, setBrands] = React.useState<Brand[]>([]);
-    const [fleets, setFleets] = React.useState<Fleet[]>([]);
-    const [orderTypes, setOrderTypes] = React.useState<OrderType[]>([]);
-    const [users, setUsers] = React.useState<UserWithId[]>([]);
-    const [orders, setOrders] = React.useState<Order[]>([]);
-    const [auditLogs, setAuditLogs] = React.useState<AuditLog[]>([]);
+    const [brands, setBrands] = React.useState<Brand[]>(MOCK_DATA.brands);
+    const [fleets, setFleets] = React.useState<Fleet[]>(MOCK_DATA.fleets);
+    const [orderTypes, setOrderTypes] = React.useState<OrderType[]>(MOCK_DATA.orderTypes);
+    const [users, setUsers] = React.useState<UserWithId[]>(MOCK_DATA.users);
+    const [orders, setOrders] = React.useState<Order[]>(MOCK_DATA.orders);
+    const [auditLogs, setAuditLogs] = React.useState<AuditLog[]>(MOCK_DATA.auditLogs);
     const [loading, setLoading] = React.useState(true);
 
-    React.useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
-            if (firebaseUser) {
-                const userDocRef = doc(db, "users", firebaseUser.uid);
-                let userDocSnap = await getDoc(userDocRef);
-                
-                if (!userDocSnap.exists()) {
-                    // This is a new user, or a user that exists in Auth but not Firestore.
-                    // Create a default profile for them.
-                    console.log(`User profile for ${firebaseUser.uid} not found. Creating one.`);
-                    const newUserProfile: User = {
-                        name: firebaseUser.displayName || firebaseUser.email || "New User",
-                        email: firebaseUser.email!,
-                        role: "Admin", // Assign 'Admin' role to the first user(s)
-                    };
-                    await setDoc(userDocRef, newUserProfile);
-                    // Re-fetch the document to ensure we have the latest data
-                    userDocSnap = await getDoc(userDocRef);
-                }
+    const login = (email: string, pass: string) => {
+      const foundUser = users.find(u => u.email === email);
+      if(foundUser) {
+        // In a real app, you'd check the password
+        setUser(foundUser);
+        setRole(foundUser.role);
+        router.push('/');
+        return true;
+      }
+      return false;
+    }
 
-                const userData = { id: userDocSnap.id, ...userDocSnap.data() } as UserWithId;
-                setUser(userData);
-                setRole(userData.role);
-                
-                if (pathname === '/login') {
-                    router.push('/');
-                }
-
-            } else {
-                setUser(null);
-                setRole(null);
-                 if (pathname !== '/login') {
-                    router.push('/login');
-                }
-            }
-            setLoading(false);
-        });
-        return () => unsubscribeAuth();
-    }, [router, pathname]);
+    const logout = () => {
+      setUser(null);
+      setRole(null);
+      router.push('/login');
+    }
 
     React.useEffect(() => {
-        if (!user) return; // Don't fetch data if no user is logged in
+        const sessionUser = sessionStorage.getItem('fleet-user');
+        if (sessionUser) {
+            const parsedUser = JSON.parse(sessionUser);
+            setUser(parsedUser);
+            setRole(parsedUser.role);
+        }
+        setLoading(false);
+    }, []);
+
+    React.useEffect(() => {
+        if (loading) return;
+
+        if (!user && pathname !== '/login') {
+            router.push('/login');
+        } else if (user && pathname === '/login') {
+            router.push('/');
+        }
         
-        const collections = {
-            brands: setBrands,
-            fleets: setFleets,
-            orderTypes: setOrderTypes,
-            users: setUsers,
-        };
+        if (user) {
+            sessionStorage.setItem('fleet-user', JSON.stringify(user));
+        } else {
+            sessionStorage.removeItem('fleet-user');
+        }
 
-        const unsubscribes = Object.entries(collections).map(([collectionName, setter]) => {
-            const q = query(collection(db, collectionName), orderBy("name"));
-            return onSnapshot(q, (querySnapshot) => {
-                const items = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                } as any));
-                setter(items);
-            }, (error) => {
-                console.error(`Error fetching ${collectionName}: `, error);
-                toast({
-                    variant: "destructive",
-                    title: "Error de conexión",
-                    description: "No se pudieron cargar los datos. Comprueba las reglas de seguridad de Firestore.",
-                });
-            });
-        });
-      
-        const ordersQuery = query(collection(db, "orders"), orderBy("date", "desc"));
-        const unsubscribeOrders = onSnapshot(ordersQuery, (querySnapshot) => {
-            const fetchedOrders = querySnapshot.docs.map(doc => {
-                const data = doc.data() as FirebaseOrder;
-                return {
-                    id: doc.id,
-                    ...data,
-                    date: data.date.toDate(),
-                } as Order;
-            });
-            setOrders(fetchedOrders);
-        });
+    }, [user, pathname, router, loading]);
 
-        const auditLogsQuery = query(collection(db, "auditLogs"), orderBy("timestamp", "desc"));
-        const unsubscribeAuditLogs = onSnapshot(auditLogsQuery, (querySnapshot) => {
-            const fetchedLogs = querySnapshot.docs.map(doc => {
-                const data = doc.data() as FirebaseAuditLog;
-                return {
-                    id: doc.id,
-                    ...data,
-                    timestamp: data.timestamp.toDate(),
-                } as AuditLog;
-            });
-            setAuditLogs(fetchedLogs);
-        });
-      
-        return () => {
-            unsubscribes.forEach(unsub => unsub());
-            unsubscribeOrders();
-            unsubscribeAuditLogs();
+    const addAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>) => {
+        const newLog: AuditLog = {
+            ...log,
+            id: `log-${Date.now()}`,
+            timestamp: new Date(),
         };
-    }, [user, toast]);
+        setAuditLogs(prev => [newLog, ...prev]);
+    }
 
     // Generic CRUD functions
-    const addItem = async <T,>(collectionName: string, item: T) => {
-        try {
-            await addDoc(collection(db, collectionName), item as any);
-        } catch (error) {
-             console.error(`Error adding to ${collectionName}:`, error);
-             toast({ variant: "destructive", title: "Error al guardar", description: "No se pudo crear el elemento." });
-        }
-    };
-    
-    const setItemWithId = async <T,>(collectionName: string, id: string, item: T) => {
-        try {
-            await setDoc(doc(db, collectionName, id), item as any);
-        } catch (error) {
-             console.error(`Error setting document in ${collectionName}:`, error);
-             toast({ variant: "destructive", title: "Error al guardar", description: "No se pudo crear el elemento." });
-        }
+    const addItem = async <T extends {id: string}>(setter: React.Dispatch<React.SetStateAction<T[]>>, item: Omit<T, 'id'>) => {
+        const newItem = { ...item, id: `${Date.now()}` } as T;
+        setter(prev => [newItem, ...prev]);
+        return Promise.resolve();
     };
 
-    const updateItem = async (collectionName: string, id: string, item: any) => {
-        const docRef = doc(db, collectionName, id);
-        try {
-            await updateDoc(docRef, item);
-        } catch(error) {
-            console.error(`Error updating ${collectionName}:`, error);
-            toast({ variant: "destructive", title: "Error al actualizar", description: "No se pudo actualizar el elemento." });
-        }
+    const updateItem = async <T extends {id: string}>(setter: React.Dispatch<React.SetStateAction<T[]>>, id: string, item: Omit<T, 'id'>) => {
+        setter(prev => prev.map(i => i.id === id ? { ...item, id } as T : i));
+        return Promise.resolve();
     };
 
-    const deleteItem = async (collectionName: string, id: string) => {
-        try {
-            await deleteDoc(doc(db, collectionName, id));
-        } catch(error) {
-            console.error(`Error deleting from ${collectionName}:`, error);
-            toast({ variant: "destructive", title: "Error al eliminar", description: "No se pudo eliminar el elemento." });
-        }
+    const deleteItem = async <T extends {id: string}>(setter: React.Dispatch<React.SetStateAction<T[]>>, id: string) => {
+        setter(prev => prev.filter(i => i.id !== id));
+        return Promise.resolve();
     };
 
     // Brand Management
-    const addBrand = (name: string) => addItem("brands", { name });
-    const updateBrand = (id: string, name: string) => updateItem("brands", id, { name });
-    const deleteBrand = (id: string) => deleteItem("brands", id);
+    const addBrand = (name: string) => addItem(setBrands, { name });
+    const updateBrand = (id: string, name: string) => updateItem(setBrands, id, { name });
+    const deleteBrand = (id: string) => deleteItem(setBrands, id);
 
     // Fleet Management
-    const addFleet = (name: string) => addItem("fleets", { name });
-    const updateFleet = (id: string, name: string) => updateItem("fleets", id, { name });
-    const deleteFleet = (id: string) => deleteItem("fleets", id);
+    const addFleet = (name: string) => addItem(setFleets, { name });
+    const updateFleet = (id: string, name: string) => updateItem(setFleets, id, { name });
+    const deleteFleet = (id: string) => deleteItem(setFleets, id);
 
     // Order Type Management
-    const addOrderType = (name: string) => addItem("orderTypes", { name });
-    const updateOrderType = (id: string, name: string) => updateItem("orderTypes", id, { name });
-    const deleteOrderType = (id: string) => deleteItem("orderTypes", id);
+    const addOrderType = (name: string) => addItem(setOrderTypes, { name });
+    const updateOrderType = (id: string, name: string) => updateItem(setOrderTypes, id, { name });
+    const deleteOrderType = (id: string) => deleteItem(setOrderTypes, id);
 
     // User Management
-    const addUser = (id: string, user: Omit<UserWithId, 'id'>) => setItemWithId("users", id, user);
-    const updateUser = (id: string, user: Omit<UserWithId, 'id'>) => updateItem("users", id, user);
-    const deleteUser = (id: string) => deleteItem("users", id);
+    const addUser = (user: Omit<UserWithId, 'id'>) => addItem(setUsers, user);
+    const updateUser = (id: string, user: Omit<UserWithId, 'id'>) => updateItem(setUsers, id, user);
+    const deleteUser = (id: string) => deleteItem(setUsers, id);
 
     // Order Management
-    const addOrder = (order: Omit<Order, 'id'>) => addItem("orders", { ...order, date: Timestamp.fromDate(order.date) });
-    const updateOrder = (id: string, orderData: Omit<Order, 'id'>) => updateItem("orders", id, { ...orderData, date: Timestamp.fromDate(orderData.date) });
-    const deleteOrder = (id: string) => deleteItem("orders", id);
-    
-    // Audit Log Management
-    const addAuditLog = (log: Omit<AuditLog, 'id' | 'timestamp'>) => addItem("auditLogs", { ...log, timestamp: Timestamp.now() });
+    const addOrder = (order: Omit<Order, 'id' | 'enteredBy'>) => {
+      if (!user) return Promise.reject("No user logged in");
+      const newOrderWithUser = { ...order, enteredBy: user.name };
+      return addItem(setOrders, newOrderWithUser as Omit<Order, 'id'>);
+    }
+    const updateOrder = (id: string, orderData: Omit<Order, 'id' | 'enteredBy'>) => {
+        if (!user) return Promise.reject("No user logged in");
+        const orderToUpdate = orders.find(o => o.id === id);
+        if (!orderToUpdate) return Promise.reject("Order not found");
+        const updatedOrderWithUser = { ...orderData, enteredBy: orderToUpdate.enteredBy };
+        return updateItem(setOrders, id, updatedOrderWithUser as Omit<Order, 'id'>);
+    }
+    const deleteOrder = (id: string) => deleteItem(setOrders, id);
 
-    if (loading || (!user && pathname !== '/login')) {
+    if (loading) {
+        return <LoadingScreen />;
+    }
+
+    if (!user && pathname !== '/login') {
         return <LoadingScreen />;
     }
 
     if (!user && pathname === '/login') {
-         return (
-            <DataContext.Provider value={null as any}>
+        return (
+            <DataContext.Provider value={{ login } as any}>
                 {children}
             </DataContext.Provider>
         );
@@ -275,7 +206,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <DataContext.Provider value={{ 
-            user, role,
+            user, role, login, logout,
             brands, addBrand, updateBrand, deleteBrand,
             fleets, addFleet, updateFleet, deleteFleet,
             orderTypes, addOrderType, updateOrderType, deleteOrderType,

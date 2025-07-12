@@ -65,7 +65,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
 
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
-    mode: 'onChange', // Validate on change to give user immediate feedback
+    mode: 'onChange',
     defaultValues: {
       orderNumber: "",
       driver: "",
@@ -80,12 +80,12 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   
   const setDefaultValues = React.useCallback(() => {
     form.reset({
-      orderNumber: "",
-      driver: drivers[0] || "",
+      orderNumber: `ORD-${Date.now() % 10000}`,
+      driver: drivers.length > 0 ? drivers[0] : "",
       date: new Date(),
-      brand: brandNames[0] || "",
-      fleet: fleetNames[0] || "",
-      type: orderTypeNames[0] || "",
+      brand: brandNames.length > 0 ? brandNames[0] : "",
+      fleet: fleetNames.length > 0 ? fleetNames[0] : "",
+      type: orderTypeNames.length > 0 ? orderTypeNames[0] : "",
       quantity: 1,
       observations: "",
     });
@@ -97,7 +97,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
       if (order) {
         form.reset({
           ...order,
-          date: new Date(order.date), // Ensure date is a Date object
+          date: new Date(order.date),
           observations: order.observations || "",
         });
       } else {
@@ -107,7 +107,6 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   }, [order, form, isOpen, setDefaultValues]);
 
   function onSubmit(values: z.infer<typeof orderSchema>) {
-    // Duplicate check only applies when creating a new order
     if (!order) {
       const isDuplicate = existingOrders.some(
         o =>
@@ -126,12 +125,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
       }
     }
     
-    // This is a new order, add the user who entered it
-    const saveData = order || !user
-        ? values 
-        : { ...values, enteredBy: user.name };
-
-    onSave(saveData);
+    onSave(values);
 
     toast({
       title: order ? "Pedido Actualizado" : "Pedido Creado",
@@ -215,10 +209,10 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Nombre Motorista</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} disabled={drivers.length === 0}>
+                            <Select onValueChange={field.onChange} value={field.value} >
                                 <FormControl>
                                     <SelectTrigger>
-                                        <SelectValue placeholder={drivers.length > 0 ? "Seleccione un motorista" : "Añada órdenes para ver motoristas"} />
+                                        <SelectValue placeholder="Seleccione un motorista" />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>{drivers.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>

@@ -7,7 +7,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { useData } from "@/contexts/data-context";
-import { auth } from "@/lib/firebase";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,12 +20,12 @@ import { Button } from "./ui/button";
 export function Header() {
   const data = useData();
 
-  if (!data) return null; // Render nothing if context is not yet available (e.g., on login page)
+  if (!data || !data.user) return null; // Render nothing if context is not yet available or no user
 
-  const { user } = data;
+  const { user, logout } = data;
 
   const handleLogout = () => {
-    auth.signOut();
+    logout();
   };
   
   const getInitials = (name: string | undefined) => {
