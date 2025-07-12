@@ -50,12 +50,9 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({
-        title: "Inicio de sesión exitoso",
-        description: "Bienvenido de nuevo.",
-      });
-      router.push("/");
+      // The DataContext will handle redirection
     } catch (error: any) {
+      console.error("Login failed:", error);
       toast({
         variant: "destructive",
         title: "Error al iniciar sesión",

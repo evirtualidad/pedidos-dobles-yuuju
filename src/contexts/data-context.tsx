@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { Brand, Fleet, OrderType, User, UserWithId, Order, AuditLog, FirebaseOrder, FirebaseAuditLog, Role } from "@/lib/types";
 import { db, auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -20,9 +20,10 @@ import {
     getDocs
 } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 type DataContextType = {
-  user: User | null;
+  user: UserWithId | null;
   role: Role | null;
   
   brands: Brand[];
@@ -52,6 +53,8 @@ type DataContextType = {
 
   auditLogs: AuditLog[];
   addAuditLog: (log: Omit<AuditLog, 'id' | 'timestamp'>) => Promise<void>;
+  
+  toast: ({ ...props }: any) => void;
 
   loading: boolean;
 };
@@ -74,7 +77,9 @@ function LoadingScreen() {
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
-    const [user, setUser] = React.useState<User | null>(null);
+    const pathname = usePathname();
+    const { toast } = useToast();
+    const [user, setUser] = React.useState<UserWithId | null>(null);
     const [role, setRole] = React.useState<Role | null>(null);
     
     const [brands, setBrands] = React.useState<Brand[]>([]);
@@ -88,9 +93,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     React.useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
-                // User is signed in, get their user profile from Firestore
-                const usersRef = collection(db, "users");
-                const q = query(usersRef, where("name", "==", firebaseUser.email));
+                 const usersRef = collection(db, "users");
+                const q = query(usersRef, where("email", "==", firebaseUser.email));
                 const querySnapshot = await getDocs(q);
                 
                 if (!querySnapshot.empty) {
@@ -98,21 +102,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                     const userData = { id: userDoc.id, ...userDoc.data() } as UserWithId;
                     setUser(userData);
                     setRole(userData.role);
+                     if (pathname === '/login') {
+                        router.push('/');
+                    }
                 } else {
-                    // Handle case where user exists in Auth but not in Firestore users collection
                     console.error("User profile not found in Firestore.");
                     auth.signOut();
                 }
             } else {
-                // User is signed out
                 setUser(null);
                 setRole(null);
-                router.push('/login');
+                 if (pathname !== '/login') {
+                    router.push('/login');
+                }
             }
             setLoading(false);
         });
         return () => unsubscribeAuth();
-    }, [router]);
+    }, [router, pathname]);
 
     React.useEffect(() => {
         if (!user) return; // Don't fetch data if no user is logged in
@@ -132,6 +139,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                     ...doc.data()
                 } as any));
                 setter(items);
+            }, (error) => {
+                console.error(`Error fetching ${collectionName}: `, error);
+                toast({
+                    variant: "destructive",
+                    title: "Error de conexión",
+                    description: "No se pudieron cargar los datos. Comprueba las reglas de seguridad de Firestore.",
+                });
             });
         });
       
@@ -166,20 +180,35 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             unsubscribeOrders();
             unsubscribeAuditLogs();
         };
-    }, [user]);
+    }, [user, toast]);
 
     // Generic CRUD functions
     const addItem = async <T,>(collectionName: string, item: T) => {
-        await addDoc(collection(db, collectionName), item as any);
+        try {
+            await addDoc(collection(db, collectionName), item as any);
+        } catch (error) {
+             console.error(`Error adding to ${collectionName}:`, error);
+             toast({ variant: "destructive", title: "Error al guardar", description: "No se pudo crear el elemento." });
+        }
     };
 
     const updateItem = async (collectionName: string, id: string, item: any) => {
         const docRef = doc(db, collectionName, id);
-        await updateDoc(docRef, item);
+        try {
+            await updateDoc(docRef, item);
+        } catch(error) {
+            console.error(`Error updating ${collectionName}:`, error);
+            toast({ variant: "destructive", title: "Error al actualizar", description: "No se pudo actualizar el elemento." });
+        }
     };
 
     const deleteItem = async (collectionName: string, id: string) => {
-        await deleteDoc(doc(db, collectionName, id));
+        try {
+            await deleteDoc(doc(db, collectionName, id));
+        } catch(error) {
+            console.error(`Error deleting from ${collectionName}:`, error);
+            toast({ variant: "destructive", title: "Error al eliminar", description: "No se pudo eliminar el elemento." });
+        }
     };
 
     // Brand Management
@@ -210,15 +239,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     // Audit Log Management
     const addAuditLog = (log: Omit<AuditLog, 'id' | 'timestamp'>) => addItem("auditLogs", { ...log, timestamp: Timestamp.now() });
 
-    if (loading) {
+    if (loading || (!user && pathname !== '/login')) {
         return <LoadingScreen />;
     }
 
-    if (!user) {
-        // This case is primarily for when the user is logged out, the redirect is handled in useEffect
+    if (!user && pathname === '/login') {
+         return (
+            <DataContext.Provider value={null as any}>
+                {children}
+            </DataContext.Provider>
+        );
+    }
+    
+    if (user && pathname === '/login') {
         return <LoadingScreen />;
     }
-
 
     return (
         <DataContext.Provider value={{ 
@@ -229,6 +264,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             users, addUser, updateUser, deleteUser,
             orders, addOrder, updateOrder, deleteOrder,
             auditLogs, addAuditLog,
+            toast,
             loading
         }}>
             {children}

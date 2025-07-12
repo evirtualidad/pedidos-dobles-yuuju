@@ -38,6 +38,7 @@ export type Role = 'Admin' | 'Fleet Supervisor' | 'Data Entry';
 
 export type User = {
   name: string;
+  email: string;
   role: Role;
   fleet?: string;
 };

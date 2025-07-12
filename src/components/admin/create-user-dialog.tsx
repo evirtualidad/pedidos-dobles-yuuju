@@ -29,6 +29,7 @@ import type { UserWithId, Role } from "@/lib/types";
 
 const userSchema = z.object({
   name: z.string().min(1, "El nombre del usuario es requerido."),
+  email: z.string().email("Debe ser un correo válido."),
   role: z.enum(['Admin', 'Fleet Supervisor', 'Data Entry']),
   fleet: z.string().optional(),
 }).refine(data => {
@@ -57,6 +58,7 @@ export function CreateUserDialog({ isOpen, setIsOpen, onSave, user, fleets }: Cr
     resolver: zodResolver(userSchema),
     defaultValues: {
       name: "",
+      email: "",
       role: "Data Entry",
       fleet: "",
     },
@@ -68,13 +70,14 @@ export function CreateUserDialog({ isOpen, setIsOpen, onSave, user, fleets }: Cr
     if (user) {
       form.reset({
           name: user.name,
+          email: user.email,
           role: user.role,
           fleet: user.fleet || "",
       });
     } else {
-      form.reset({ name: "", role: "Data Entry", fleet: "" });
+      form.reset({ name: "", email: "", role: "Data Entry", fleet: "" });
     }
-  }, [user, form]);
+  }, [user, form, isOpen]); // Added isOpen to ensure reset happens when dialog opens
   
   React.useEffect(() => {
     if (selectedRole !== 'Fleet Supervisor') {
@@ -85,6 +88,7 @@ export function CreateUserDialog({ isOpen, setIsOpen, onSave, user, fleets }: Cr
   const onSubmit = (values: z.infer<typeof userSchema>) => {
     const userData: Omit<UserWithId, 'id'> = {
         name: values.name,
+        email: values.email,
         role: values.role,
     };
 
@@ -97,7 +101,6 @@ export function CreateUserDialog({ isOpen, setIsOpen, onSave, user, fleets }: Cr
       title: user ? "Usuario Actualizado" : "Usuario Creado",
       description: `El usuario "${values.name}" ha sido guardado exitosamente.`,
     });
-    form.reset();
     setIsOpen(false);
   };
   
@@ -127,6 +130,19 @@ export function CreateUserDialog({ isOpen, setIsOpen, onSave, user, fleets }: Cr
                   <FormLabel>Nombre de Usuario</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Correo Electrónico (para inicio de sesión)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., john.doe@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -171,7 +187,7 @@ export function CreateUserDialog({ isOpen, setIsOpen, onSave, user, fleets }: Cr
                 />
             )}
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>
+              <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
                 Cancelar
               </Button>
               <Button type="submit">Guardar</Button>

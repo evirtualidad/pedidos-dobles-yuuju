@@ -1,4 +1,6 @@
 
+"use client";
+
 import { Truck, LogOut } from "lucide-react";
 import { MainNav } from "@/components/main-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -17,7 +19,11 @@ import {
 import { Button } from "./ui/button";
 
 export function Header() {
-  const { user } = useData();
+  const data = useData();
+
+  if (!data) return null; // Render nothing if context is not yet available (e.g., on login page)
+
+  const { user } = data;
 
   const handleLogout = () => {
     auth.signOut();
@@ -65,8 +71,11 @@ export function Header() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user?.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.role}
+                     <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground pt-1">
+                      Rol: {user?.role}
                     </p>
                   </div>
                 </DropdownMenuLabel>

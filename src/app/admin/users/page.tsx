@@ -75,6 +75,7 @@ export default function AdminUsersPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Nombre</TableHead>
+                                <TableHead>Correo</TableHead>
                                 <TableHead>Rol</TableHead>
                                 <TableHead>Flota (si aplica)</TableHead>
                                 <TableHead>
@@ -86,6 +87,7 @@ export default function AdminUsersPage() {
                             {users.map(user => (
                                 <TableRow key={user.id}>
                                     <TableCell>{user.name}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
                                     <TableCell>{user.role}</TableCell>
                                     <TableCell>{user.fleet || 'N/A'}</TableCell>
                                     <TableCell>
