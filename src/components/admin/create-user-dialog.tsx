@@ -83,10 +83,14 @@ export function CreateUserDialog({ isOpen, setIsOpen, onSave, user, fleets }: Cr
   }, [selectedRole, form]);
 
   const onSubmit = (values: z.infer<typeof userSchema>) => {
-    const userData = {
-        ...values,
-        fleet: values.role === 'Fleet Supervisor' ? values.fleet : undefined,
-    } as Omit<UserWithId, 'id'>;
+    const userData: Omit<UserWithId, 'id'> = {
+        name: values.name,
+        role: values.role,
+    };
+
+    if (values.role === 'Fleet Supervisor') {
+        userData.fleet = values.fleet;
+    }
 
     onSave(userData);
     toast({
