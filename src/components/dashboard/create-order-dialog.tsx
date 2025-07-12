@@ -65,19 +65,10 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
   const form = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
     mode: 'onChange',
-    defaultValues: {
-      orderNumber: "",
-      driver: "",
-      date: new Date(),
-      brand: "",
-      fleet: "",
-      type: "",
-      quantity: 1,
-      observations: "",
-    },
   });
 
   React.useEffect(() => {
+    // Only reset the form when the dialog opens
     if (isOpen) {
       if (order) {
         // Editing an existing order
@@ -145,6 +136,8 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
         form.setValue("fleet", "", { shouldValidate: true });
     }
   };
+  
+  const initialDriverName = form.watch("driver");
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -216,7 +209,10 @@ export function CreateOrderDialog({ isOpen, setIsOpen, onSave, existingOrders, o
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                             <FormLabel>Nombre Motorista</FormLabel>
-                                <DriverCombobox onSelect={handleDriverSelect} initialDriverName={field.value} />
+                                <DriverCombobox 
+                                    onSelect={handleDriverSelect} 
+                                    initialDriverName={initialDriverName} 
+                                />
                             <FormMessage />
                         </FormItem>
                     )}
